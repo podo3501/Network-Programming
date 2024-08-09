@@ -6,25 +6,21 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <iostream>
+#include <array>
+#include <string>
 
 #pragma comment (lib, "Ws2_32.lib")
 
-#define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT "27015"
+constexpr int DEFAULT_BUFLEN = 512;
+constexpr std::string DEFAULT_PORT = "27015";
 
 int __cdecl main(void)
 {
 	WSADATA wsaData{};
 	auto iResult{ 0 };
 
-	SOCKET ListenSocket = INVALID_SOCKET;
-	SOCKET ClientSocket = INVALID_SOCKET;
-
 	addrinfo* result = nullptr;
 	addrinfo hints{};
-
-	char recvbuf[DEFAULT_BUFLEN]{};
-	int recvbuflen = DEFAULT_BUFLEN;
 
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0)
@@ -38,7 +34,7 @@ int __cdecl main(void)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	iResult = getaddrinfo(nullptr, DEFAULT_PORT, &hints, &result);
+	iResult = getaddrinfo(nullptr, DEFAULT_PORT.c_str(), &hints, &result);
 	if (iResult != 0)
 	{
 		std::cout << "getaddrinfo failed with error: " << iResult << std::endl;
@@ -46,6 +42,7 @@ int __cdecl main(void)
 		return 1;
 	}
 
+	SOCKET ListenSocket = INVALID_SOCKET;
 	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	if (ListenSocket == INVALID_SOCKET)
 	{
@@ -75,6 +72,7 @@ int __cdecl main(void)
 		return 1;
 	}
 
+	SOCKET ClientSocket = INVALID_SOCKET;
 	ClientSocket = accept(ListenSocket, nullptr, nullptr);
 	if (ClientSocket == INVALID_SOCKET)
 	{
@@ -86,15 +84,16 @@ int __cdecl main(void)
 
 	closesocket(ListenSocket);
 
+	std::array<char, DEFAULT_BUFLEN> recvbuf{};
 	auto iSendResult{ 0 };
 	do
 	{
-		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
+		iResult = recv(ClientSocket, recvbuf.data(), static_cast<int>(recvbuf.size()), 0);
 		if (iResult > 0)
 		{
 			std::cout << "Bytes received: " << iResult << std::endl;
 
-			iSendResult = send(ClientSocket, recvbuf, iResult, 0);
+			iSendResult = send(ClientSocket, recvbuf.data(), iResult, 0);
 			if (iSendResult == SOCKET_ERROR)
 			{
 				std::cout << "send failed with error: " << WSAGetLastError() << std::endl;
@@ -126,6 +125,8 @@ int __cdecl main(void)
 
 	closesocket(ClientSocket);
 	WSACleanup();
+
+	system("pause");
 
 	return 0;
 }
