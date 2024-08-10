@@ -7,6 +7,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Server\Server.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Client.vcxproj", "{1565C55B-980F-4CA0-907F-CE5279FB0D00}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Network", "Network\Network.vcxproj", "{41C1BB59-1DF3-4B42-AE3D-555221D5135F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{3E25BD59-39E9-46AF-94B5-59C4B548062A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{BC54F9D9-649F-42ED-974D-F697434F5193}"
+	ProjectSection(SolutionItems) = preProject
+		Include\NetworkInterface.h = Include\NetworkInterface.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +40,22 @@ Global
 		{1565C55B-980F-4CA0-907F-CE5279FB0D00}.Release|x64.Build.0 = Release|x64
 		{1565C55B-980F-4CA0-907F-CE5279FB0D00}.Release|x86.ActiveCfg = Release|Win32
 		{1565C55B-980F-4CA0-907F-CE5279FB0D00}.Release|x86.Build.0 = Release|Win32
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Debug|x64.ActiveCfg = Debug|x64
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Debug|x64.Build.0 = Debug|x64
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Debug|x86.ActiveCfg = Debug|Win32
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Debug|x86.Build.0 = Debug|Win32
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Release|x64.ActiveCfg = Release|x64
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Release|x64.Build.0 = Release|x64
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Release|x86.ActiveCfg = Release|Win32
+		{41C1BB59-1DF3-4B42-AE3D-555221D5135F}.Release|x86.Build.0 = Release|Win32
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Debug|x64.ActiveCfg = Debug|x64
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Debug|x64.Build.0 = Debug|x64
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Debug|x86.ActiveCfg = Debug|Win32
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Debug|x86.Build.0 = Debug|Win32
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x64.ActiveCfg = Release|x64
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x64.Build.0 = Release|x64
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x86.ActiveCfg = Release|Win32
+		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,7 +12,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 constexpr int DEFAULT_BUFLEN = 512;
-constexpr std::string DEFAULT_PORT = "27015";
+#define DEFAULT_PORT "27015"
 
 int __cdecl main(int argc, char** argv)
 {
@@ -41,7 +41,7 @@ int __cdecl main(int argc, char** argv)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
-	iResult = getaddrinfo(argv[1], DEFAULT_PORT.c_str(), &hints, &result);
+	iResult = getaddrinfo(argv[1], DEFAULT_PORT, &hints, &result);
 	if (iResult != 0)
 	{
 		std::cout << "getaddrinfo failed with error: " << iResult << std::endl;

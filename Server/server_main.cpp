@@ -8,13 +8,35 @@
 #include <iostream>
 #include <array>
 #include <string>
+#include "../Include/NetworkInterface.h"
 
 #pragma comment (lib, "Ws2_32.lib")
 
 constexpr int DEFAULT_BUFLEN = 512;
-constexpr std::string DEFAULT_PORT = "27015";
+#define DEFAULT_PORT "27015"
 
 int __cdecl main(void)
+{
+	std::unique_ptr<Server> network = CreateServer();
+
+	auto result = network->Setup(":27015");
+	if (result != true)
+		return 1;
+
+	result = network->PrepareTCPSocket();
+	if (result != true)
+		return 1;
+
+	//do
+	//{
+	//	std::array<void, DEFAULT_BUFLEN> recvbuf{};
+	//	result = network->Receive(recvbuf.data(), recvbuf.size());
+	//} while (result);
+
+	return 0;
+}
+
+int __cdecl main_2(void)
 {
 	WSADATA wsaData{};
 	auto iResult{ 0 };
@@ -34,7 +56,7 @@ int __cdecl main(void)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	iResult = getaddrinfo(nullptr, DEFAULT_PORT.c_str(), &hints, &result);
+	iResult = getaddrinfo(nullptr, DEFAULT_PORT, &hints, &result);
 	if (iResult != 0)
 	{
 		std::cout << "getaddrinfo failed with error: " << iResult << std::endl;
