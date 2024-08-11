@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "Network.h"
 #include "SocketAddress.h"
 #include "TCPSocket.h"
@@ -10,12 +10,16 @@ std::unique_ptr<Server> CreateServer()
 	return std::move(std::make_unique<Network>());
 }
 
+std::unique_ptr<Client> CreateClient()
+{
+	return std::move(std::make_unique<Network>());
+}
+
 using namespace SocketUtil;
 
 Network::Network() :
 	m_sockAddress{ nullptr },
-	m_listenSocket{ nullptr },
-	m_clientSocket{ nullptr }
+	m_tcpSocket{ nullptr }
 {}
 
 Network::~Network()
@@ -46,20 +50,44 @@ bool Network::Startup()
 
 bool Network::PrepareTCPSocket()
 {
-	m_listenSocket = CreateTCPSocket(AF_INET);
-	if (m_listenSocket == nullptr) return false;
-	ReturnIfFalse(m_listenSocket->Bind(*m_sockAddress.get()));
-	ReturnIfFalse(m_listenSocket->Listen(SOMAXCONN));
+	std::unique_ptr<TCPSocket> listenSocket = CreateTCPSocket(AF_INET);
+	if (listenSocket == nullptr) return false;
+
+	ReturnIfFalse(listenSocket->Bind(*m_sockAddress.get()));
+	ReturnIfFalse(listenSocket->Listen(SOMAXCONN));
 
 	SocketAddress addr;
-	m_clientSocket = m_listenSocket->Accept(addr);
-	if (m_clientSocket == nullptr) return false;
-
-	m_listenSocket.reset();
-
-	//recv ÇÒ Â÷·Ê
+	m_tcpSocket = listenSocket->Accept(addr);
+	if (m_tcpSocket == nullptr) return false;
 
 	return true;
+}
+
+bool Network::Connect()
+{
+	m_tcpSocket = CreateTCPSocket(AF_INET);
+	if (m_tcpSocket == nullptr) return false;
+
+	return m_tcpSocket->Connect(*m_sockAddress.get());
+}
+
+bool Network::Send(const void* data, size_t len, int32_t* recvBytes)
+{
+	if (m_tcpSocket == nullptr) return false;
+
+	return m_tcpSocket->Send(data, len, recvBytes);
+}
+
+bool Network::Receive(void* data, size_t len, int32_t* recvBytes)
+{
+	if (m_tcpSocket == nullptr) return false;
+	
+	return m_tcpSocket->Receive(data, len, recvBytes);
+}
+
+bool Network::Shutdown(int shutdownFlag)
+{
+	return m_tcpSocket->Shutdown(shutdownFlag);
 }
 
 void GetHostAndService(const std::string& addr, std::string* host, std::string* service)

@@ -12,9 +12,13 @@ public:
 	TCPSocket(const TCPSocket&) = delete;
 	TCPSocket& operator=(const TCPSocket&) = delete;
 
-	bool Bind(SocketAddress& bindAddr);
+	bool Bind(const SocketAddress& bindAddr);
 	bool Listen(int backLog = 32);
+	bool Connect(const SocketAddress& addr);
 	std::unique_ptr<TCPSocket> Accept(SocketAddress& fromAddr);
+	bool Send(const void* data, size_t len, int32_t* recvBytes);
+	bool Receive(void* data, size_t len, int32_t* recvBytes);
+	bool Shutdown(int shutdownFlag);
 
 private:
 	SOCKET m_socket;

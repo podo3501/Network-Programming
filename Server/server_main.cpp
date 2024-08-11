@@ -13,10 +13,33 @@
 #pragma comment (lib, "Ws2_32.lib")
 
 constexpr int DEFAULT_BUFLEN = 512;
-#define DEFAULT_PORT "27015"
+
+//콘솔창을 강제 종료할 경우 정상종료가 아니라 메모리가 세는 부분이 생긴다. 
+//이렇게 하면 종료할때 이 부분을 거쳐가게 되어 소멸자가 호출되게 된다.
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
+{
+	switch (fdwCtrlType)
+	{
+	case CTRL_C_EVENT: //CTRL + C
+	case CTRL_CLOSE_EVENT: //Close Action
+	case CTRL_BREAK_EVENT: //CTRL + Pause Break
+	case CTRL_LOGOFF_EVENT: //System Logoff
+	case CTRL_SHUTDOWN_EVENT: //System power off
+		break;
+	default: 
+		break;
+	}
+	return TRUE;
+}
 
 int __cdecl main(void)
 {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
+	SetConsoleCtrlHandler(CtrlHandler, TRUE);
+
 	std::unique_ptr<Server> network = CreateServer();
 
 	auto result = network->Setup(":27015");
@@ -27,126 +50,19 @@ int __cdecl main(void)
 	if (result != true)
 		return 1;
 
-	//do
-	//{
-	//	std::array<void, DEFAULT_BUFLEN> recvbuf{};
-	//	result = network->Receive(recvbuf.data(), recvbuf.size());
-	//} while (result);
-
-	return 0;
-}
-
-int __cdecl main_2(void)
-{
-	WSADATA wsaData{};
-	auto iResult{ 0 };
-
-	addrinfo* result = nullptr;
-	addrinfo hints{};
-
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0)
-	{
-		std::cout << "WSAStartup failed with error: " << iResult << std::endl;
-		return 1;
-	}
-
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = AI_PASSIVE;
-
-	iResult = getaddrinfo(nullptr, DEFAULT_PORT, &hints, &result);
-	if (iResult != 0)
-	{
-		std::cout << "getaddrinfo failed with error: " << iResult << std::endl;
-		WSACleanup();
-		return 1;
-	}
-
-	SOCKET ListenSocket = INVALID_SOCKET;
-	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	if (ListenSocket == INVALID_SOCKET)
-	{
-		std::cout << "socket failed with error: " << WSAGetLastError() << std::endl;
-		freeaddrinfo(result);
-		WSACleanup();
-	}
-
-	iResult = bind(ListenSocket, result->ai_addr, static_cast<int>(result->ai_addrlen));
-	if (iResult == SOCKET_ERROR)
-	{
-		std::cout << "bind failed with error: " << WSAGetLastError() << std::endl;
-		freeaddrinfo(result);
-		closesocket(ListenSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	freeaddrinfo(result);
-
-	iResult = listen(ListenSocket, SOMAXCONN);
-	if (iResult == SOCKET_ERROR)
-	{
-		std::cout << "listen failed with error: " << WSAGetLastError() << std::endl;
-		closesocket(ListenSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	SOCKET ClientSocket = INVALID_SOCKET;
-	ClientSocket = accept(ListenSocket, nullptr, nullptr);
-	if (ClientSocket == INVALID_SOCKET)
-	{
-		std::cout << "accept failed with error: " << WSAGetLastError() << std::endl;
-		closesocket(ListenSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	closesocket(ListenSocket);
-
-	std::array<char, DEFAULT_BUFLEN> recvbuf{};
-	auto iSendResult{ 0 };
+	int32_t recvBytes{ 0 };
 	do
 	{
-		iResult = recv(ClientSocket, recvbuf.data(), static_cast<int>(recvbuf.size()), 0);
-		if (iResult > 0)
+		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
+		result = network->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
+		if (recvBytes > 0)
 		{
-			std::cout << "Bytes received: " << iResult << std::endl;
-
-			iSendResult = send(ClientSocket, recvbuf.data(), iResult, 0);
-			if (iSendResult == SOCKET_ERROR)
-			{
-				std::cout << "send failed with error: " << WSAGetLastError() << std::endl;
-				closesocket(ClientSocket);
-				WSACleanup();
-				return 1;
-			}
-			std::cout << "Bytes sent: " << iSendResult << std::endl;
+			std::cout << "Bytes received: " << recvBytes << std::endl;
+			result = network->Send(recvbuf.data(), recvBytes, nullptr);
 		}
-		else if (iResult == 0)
-			std::cout << "Connection closiong..." << std::endl;
-		else
-		{
-			std::cout << "recv failed with error: " << WSAGetLastError() << std::endl;
-			closesocket(ClientSocket);
-			WSACleanup();
-			return 1;
-		}
-	} while (iResult > 0);
+	} while (recvBytes > 0);
 
-	iResult = shutdown(ClientSocket, SD_SEND);
-	if (iResult == SOCKET_ERROR)
-	{
-		std::cout << "shutdown failed with error: " << WSAGetLastError() << std::endl;
-		closesocket(ClientSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	closesocket(ClientSocket);
-	WSACleanup();
+	network->Shutdown();
 
 	system("pause");
 

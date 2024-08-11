@@ -133,6 +133,11 @@
   <ItemGroup>
     <ClCompile Include="client_main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Network\Network.vcxproj">
+      <Project>{41c1bb59-1df3-4b42-ae3d-555221d5135f}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

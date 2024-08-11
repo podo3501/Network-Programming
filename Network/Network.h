@@ -14,15 +14,16 @@ public:
 	Network& operator=(const Network&) = delete;
 
 	virtual bool Setup(const std::string& addr) override;
-	virtual bool Connect() { return true; };
 	virtual bool PrepareTCPSocket() override;
-	//virtual bool Connect(u_short port);
-
+	virtual bool Connect() override;
+	virtual bool Send(const void* data, size_t len, int32_t* recvBytes) override;
+	virtual bool Receive(void* data, size_t len, int32_t* recvBytes) override;
+	virtual bool Shutdown(int shutdownFlag = SD_SEND) override;
+	
 private:
 	bool Startup();
 	bool CreateIPv4(const std::string& inString);
 
 	std::unique_ptr<SocketAddress> m_sockAddress;
-	std::unique_ptr<TCPSocket> m_listenSocket;
-	std::unique_ptr<TCPSocket> m_clientSocket;
+	std::unique_ptr<TCPSocket> m_tcpSocket;
 };
