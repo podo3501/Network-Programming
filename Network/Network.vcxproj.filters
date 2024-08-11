@@ -7,7 +7,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="TcpNetwork.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="SocketUtil.cpp" />
@@ -16,7 +16,7 @@
     <ClCompile Include="TCPSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Network.h" />
+    <ClInclude Include="TcpNetwork.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="SocketUtil.h" />

@@ -1,33 +1,33 @@
 ﻿#include "pch.h"
-#include "Network.h"
+#include "TcpNetwork.h"
 #include "SocketAddress.h"
 #include "TCPSocket.h"
 #include "SocketUtil.h"
 #include "Utils.h"
 
-std::unique_ptr<Server> CreateServer()
+std::unique_ptr<TcpServer> CreateServer()
 {
-	return std::move(std::make_unique<Network>());
+	return std::move(std::make_unique<TcpNetwork>());
 }
 
-std::unique_ptr<Client> CreateClient()
+std::unique_ptr<TcpClient> CreateClient()
 {
-	return std::move(std::make_unique<Network>());
+	return std::move(std::make_unique<TcpNetwork>());
 }
 
 using namespace SocketUtil;
 
-Network::Network() :
+TcpNetwork::TcpNetwork() :
 	m_sockAddress{ nullptr },
 	m_tcpSocket{ nullptr }
 {}
 
-Network::~Network()
+TcpNetwork::~TcpNetwork()
 {
 	WSACleanup();
 }
 
-bool Network::Setup(const std::string& addr)
+bool TcpNetwork::Setup(const std::string& addr)
 {
 	ReturnIfFalse(Startup());
 	ReturnIfFalse(CreateIPv4(addr));
@@ -35,7 +35,7 @@ bool Network::Setup(const std::string& addr)
 	return true;
 }
 
-bool Network::Startup()
+bool TcpNetwork::Startup()
 {
 	WSADATA wsaData;
 	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -48,7 +48,7 @@ bool Network::Startup()
 	return true;
 }
 
-bool Network::PrepareTCPSocket()
+bool TcpNetwork::Listen()
 {
 	std::unique_ptr<TCPSocket> listenSocket = CreateTCPSocket(AF_INET);
 	if (listenSocket == nullptr) return false;
@@ -63,7 +63,7 @@ bool Network::PrepareTCPSocket()
 	return true;
 }
 
-bool Network::Connect()
+bool TcpNetwork::Connect()
 {
 	m_tcpSocket = CreateTCPSocket(AF_INET);
 	if (m_tcpSocket == nullptr) return false;
@@ -71,21 +71,21 @@ bool Network::Connect()
 	return m_tcpSocket->Connect(*m_sockAddress.get());
 }
 
-bool Network::Send(const void* data, size_t len, int32_t* recvBytes)
+bool TcpNetwork::Send(const void* data, size_t len, int32_t* recvBytes)
 {
 	if (m_tcpSocket == nullptr) return false;
 
 	return m_tcpSocket->Send(data, len, recvBytes);
 }
 
-bool Network::Receive(void* data, size_t len, int32_t* recvBytes)
+bool TcpNetwork::Receive(void* data, size_t len, int32_t* recvBytes)
 {
 	if (m_tcpSocket == nullptr) return false;
 	
 	return m_tcpSocket->Receive(data, len, recvBytes);
 }
 
-bool Network::Shutdown(int shutdownFlag)
+bool TcpNetwork::Shutdown(int shutdownFlag)
 {
 	return m_tcpSocket->Shutdown(shutdownFlag);
 }
@@ -107,7 +107,7 @@ void GetHostAndService(const std::string& addr, std::string* host, std::string* 
 	}
 }
 
-bool Network::CreateIPv4(const std::string& inString)
+bool TcpNetwork::CreateIPv4(const std::string& inString)
 {
 	std::string host, service;
 	GetHostAndService(inString, &host, &service);

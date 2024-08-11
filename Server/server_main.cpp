@@ -40,13 +40,13 @@ int __cdecl main(void)
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	std::unique_ptr<Server> network = CreateServer();
+	std::unique_ptr<TcpServer> network = CreateServer();
 
 	auto result = network->Setup(":27015");
 	if (result != true)
 		return 1;
 
-	result = network->PrepareTCPSocket();
+	result = network->Listen();
 	if (result != true)
 		return 1;
 

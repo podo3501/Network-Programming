@@ -47,10 +47,10 @@ namespace Network
 {
 	void TCPServer(const std::string& addr)
 	{
-		std::unique_ptr<Server> network = CreateServer();
+		std::unique_ptr<TcpServer> network = CreateServer();
 
 		EXPECT_EQ(network->Setup(addr), true);
-		EXPECT_EQ(network->PrepareTCPSocket(), true);
+		EXPECT_EQ(network->Listen(), true);
 
 		int32_t recvBytes{ 0 };
 		do
@@ -69,7 +69,7 @@ namespace Network
 
 	void TCPClient(const std::string& addr)
 	{
-		std::unique_ptr<Client> network = CreateClient();
+		std::unique_ptr<TcpClient> network = CreateClient();
 
 		EXPECT_EQ(network->Setup("192.168.0.125:27015"), true);
 		EXPECT_EQ(network->Connect(), true);

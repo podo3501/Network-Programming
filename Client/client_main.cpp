@@ -36,7 +36,7 @@ int __cdecl main(int argc, char** argv)
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	std::unique_ptr<Client> network = CreateClient();
+	std::unique_ptr<TcpClient> network = CreateClient();
 
 	auto result = network->Setup("192.168.0.125:27015");
 	if (result != true)
