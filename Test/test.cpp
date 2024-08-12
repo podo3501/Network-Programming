@@ -1,8 +1,11 @@
 ﻿#include "pch.h"
 #include "../Include/NetworkInterface.h"
+#include "../Network/SocketAddress.h"
 
 //출력 창 - 테스트에 출력하기
-#define COUT std::cout << "[   INFO   ] "
+#define gcout std::cout << "[   INFO   ] "
+
+using namespace std::chrono_literals;
 
 class GlobalEnv : public ::testing::Environment
 {
@@ -38,6 +41,12 @@ int main(int argc, char** argv)
 	::testing::InitGoogleTest(&argc, argv);
 	::testing::AddGlobalTestEnvironment(new GlobalEnv);
 
+	auto silent_run = false;
+	if (silent_run) {
+		auto& listeners = ::testing::UnitTest::GetInstance()->listeners();
+		delete listeners.Release(listeners.default_result_printer());
+	}
+
 	return RUN_ALL_TESTS();
 }
 
@@ -47,45 +56,43 @@ namespace Network
 {
 	void TCPServer(const std::string& addr)
 	{
-		std::unique_ptr<TcpServer> network = CreateServer();
+		std::unique_ptr<TCPProtocol> tcpServer = CreateTCPProtocol();
 
-		EXPECT_EQ(network->Setup(addr), true);
-		EXPECT_EQ(network->Listen(), true);
+		EXPECT_TRUE(tcpServer->Setup(HostType::Server, addr));
 
 		int32_t recvBytes{ 0 };
 		do
 		{
 			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-			EXPECT_EQ(network->Receive(recvbuf.data(), recvbuf.size(), &recvBytes), true);
+			EXPECT_TRUE(tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes));
 			if (recvBytes > 0)
 			{
-				COUT << "Server Bytes received: " << recvBytes << std::endl;
-				EXPECT_EQ(network->Send(recvbuf.data(), recvBytes, nullptr), true);
+				gcout << "Server Bytes received: " << recvBytes << std::endl;
+				EXPECT_TRUE(tcpServer->Send(recvbuf.data(), recvBytes, nullptr));
 			}
 		} while (recvBytes > 0);
 
-		EXPECT_EQ(network->Shutdown(), true);
+		EXPECT_TRUE(tcpServer->Shutdown());
 	}
 
 	void TCPClient(const std::string& addr)
 	{
-		std::unique_ptr<TcpClient> network = CreateClient();
+		std::unique_ptr<TCPProtocol> tcpClient = CreateTCPProtocol();
 
-		EXPECT_EQ(network->Setup("192.168.0.125:27015"), true);
-		EXPECT_EQ(network->Connect(), true);
+		EXPECT_TRUE(tcpClient->Setup(HostType::Client, addr));
 
 		std::string sendbuf{ "this is a test" };
-		EXPECT_EQ(network->Send(sendbuf.c_str(), sendbuf.size(), nullptr), true);
+		EXPECT_TRUE(tcpClient->Send(sendbuf.c_str(), sendbuf.size(), nullptr));
 
-		EXPECT_EQ(network->Shutdown(), true);
+		EXPECT_TRUE(tcpClient->Shutdown());
 
 		int32_t recvBytes{ 0 };
 		do
 		{
 			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-			EXPECT_EQ(network->Receive(recvbuf.data(), recvbuf.size(), &recvBytes), true);
+			EXPECT_TRUE(tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes));
 			if (recvBytes > 0)
-				COUT << "Client Bytes received: " << recvBytes << std::endl;
+				gcout << "Client Bytes received: " << recvBytes << std::endl;
 		} while (recvBytes > 0);
 	}
 
@@ -101,15 +108,37 @@ namespace Network
 		t2.join();
 	}
 
-	void UDPServer()
+	void UDPServer(const std::string& serverAddr)
 	{
+		std::unique_ptr<UDPProtocol> udpServer = CreateUDPServer(serverAddr);
+		EXPECT_NE(udpServer, nullptr);
 
+		SocketAddress clientAddr{};
+		int32_t recvBytes{ 0 };
+		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
+		EXPECT_TRUE(udpServer->ReceiveFrom(recvbuf.data(), DEFAULT_BUFLEN, clientAddr, &recvBytes));
+
+		gcout << "Receive Bytes : " << recvBytes << std::endl;
 	}
 
-	TEST(UDPSocket, Test)
+	void UDPClient(const std::string& serverAddr)
 	{
-		//std::thread t1{ UDPServer };
+		std::this_thread::sleep_for(100ms); //서버가 먼저 돌게끔 클라이언트 쓰레드는 잠시 멈춘다.
+		std::unique_ptr<UDPProtocol> udpClient = CreateUDPClient();
+		EXPECT_NE(udpClient, nullptr);
 
-		//t1.join();
+		SocketAddress addr(serverAddr);
+		std::string sendbuf{ "this is a test" };
+		int32_t sentBytes{ 0 };
+		EXPECT_TRUE(udpClient->SendTo(sendbuf.c_str(), sendbuf.size(), addr, &sentBytes));
+	}
+
+	TEST(UDPProtocol, Test)
+	{
+		std::thread t1{ UDPServer, ":28015" };
+		std::thread t2{ UDPClient, "192.168.0.125:28015" };
+		
+		t1.join();
+		t2.join();
 	}
 }

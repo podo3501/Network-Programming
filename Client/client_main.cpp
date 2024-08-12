@@ -36,28 +36,24 @@ int __cdecl main(int argc, char** argv)
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	std::unique_ptr<TcpClient> network = CreateClient();
+	std::unique_ptr<TCPProtocol> tcpClient = CreateTCPProtocol();
 
-	auto result = network->Setup("192.168.0.125:27015");
-	if (result != true)
-		return 1;
-
-	result = network->Connect();
+	auto result = tcpClient->Setup(HostType::Client, "192.168.0.125:27015");
 	if (result != true)
 		return 1;
 
 	std::string sendbuf{ "this is a test" };
-	result = network->Send(sendbuf.c_str(), sendbuf.size(), nullptr);
+	result = tcpClient->Send(sendbuf.c_str(), sendbuf.size(), nullptr);
 	if (result != true)
 		return 1;
 
-	network->Shutdown();
+	tcpClient->Shutdown();
 
 	int32_t recvBytes{ 0 };
 	do
 	{
 		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-		result = network->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
+		result = tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
 		if (recvBytes > 0)
 			std::cout << "Bytes received: " << recvBytes << std::endl;
 	} while (recvBytes > 0);

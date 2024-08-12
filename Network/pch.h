@@ -9,6 +9,7 @@
 #include <WS2tcpip.h>
 
 #include <assert.h>
+#include <vector>
 #include <string>
 #include <memory>
 #include <iostream>

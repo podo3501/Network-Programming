@@ -40,13 +40,9 @@ int __cdecl main(void)
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	std::unique_ptr<TcpServer> network = CreateServer();
+	std::unique_ptr<TCPProtocol> tcpServer = CreateTCPProtocol();
 
-	auto result = network->Setup(":27015");
-	if (result != true)
-		return 1;
-
-	result = network->Listen();
+	auto result = tcpServer->Setup(HostType::Server, ":27015");
 	if (result != true)
 		return 1;
 
@@ -54,15 +50,15 @@ int __cdecl main(void)
 	do
 	{
 		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-		result = network->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
+		result = tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
 		if (recvBytes > 0)
 		{
 			std::cout << "Bytes received: " << recvBytes << std::endl;
-			result = network->Send(recvbuf.data(), recvBytes, nullptr);
+			result = tcpServer->Send(recvbuf.data(), recvBytes, nullptr);
 		}
 	} while (recvBytes > 0);
 
-	network->Shutdown();
+	tcpServer->Shutdown();
 
 	system("pause");
 

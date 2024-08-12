@@ -6,7 +6,7 @@
 using namespace SocketUtil;
 
 TCPSocket::TCPSocket(SOCKET s) :
-	m_socket(s)
+	m_socket{ s }
 {
 }
 

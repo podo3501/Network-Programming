@@ -154,6 +154,8 @@
     <ClCompile Include="SocketUtil.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="TCPSocket.cpp" />
+    <ClCompile Include="UdpNetwork.cpp" />
+    <ClCompile Include="UDPSocket.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +165,8 @@
     <ClInclude Include="SocketUtil.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="TCPSocket.h" />
+    <ClInclude Include="UdpNetwork.h" />
+    <ClInclude Include="UDPSocket.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
