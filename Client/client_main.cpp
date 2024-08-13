@@ -10,7 +10,7 @@
 
 constexpr int DEFAULT_BUFLEN = 512;
 
-//콘솔창을 강제 종료할 경우 정상종료가 아니라 메모리가 세는 부분이 생긴다. 
+//콘솔창을 강제 종료할 경우 정상종료가 아니라 메모리가 새는 부분이 생긴다. 
 //이렇게 하면 종료할때 이 부분을 거쳐가게 되어 소멸자가 호출되게 된다.
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
@@ -38,27 +38,31 @@ int __cdecl main(int argc, char** argv)
 
 	std::unique_ptr<TCPProtocol> tcpClient = CreateTCPProtocol();
 
-	auto result = tcpClient->Setup(HostType::Client, "192.168.0.125:27015");
+	auto result = tcpClient->Setup(HostType::Client, "192.168.0.125:27005");
 	if (result != true)
 		return 1;
-
-	std::string sendbuf{ "this is a test" };
-	result = tcpClient->Send(sendbuf.c_str(), sendbuf.size(), nullptr);
-	if (result != true)
-		return 1;
-
-	tcpClient->Shutdown();
 
 	int32_t recvBytes{ 0 };
 	do
 	{
+		std::string msg{};
+		std::cout << "message : ";
+		std::getline(std::cin, msg);
+		if (!tcpClient->Send(msg.c_str(), msg.size(), nullptr)) break;
+		if (msg.empty()) break;
+
 		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
 		result = tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
 		if (recvBytes > 0)
-			std::cout << "Bytes received: " << recvBytes << std::endl;
+		{
+			std::string recvMsg = (char*)recvbuf.data();
+			std::cout << "Bytes received: " << recvMsg << std::endl;
+			//std::cout << "Bytes received: " << recvBytes << std::endl;
+		}
 	} while (recvBytes > 0);
 
-	system("pause");
+	std::cout << "Shutdown" << std::endl;
+	tcpClient->Shutdown();
 
 	return 0;
 }

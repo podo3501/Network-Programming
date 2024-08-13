@@ -19,8 +19,8 @@ public:
 	virtual bool Shutdown(int shutdownFlag = SD_SEND) override;
 	
 private:
-	bool Listen(const std::string& addr);
-	bool Connect(const std::string& addr);
+	bool Listen(const SocketAddress& serverAddr);
+	bool Connect(const SocketAddress& serverAddr);
 
 	std::unique_ptr<TCPSocket> m_tcpSocket;
 };

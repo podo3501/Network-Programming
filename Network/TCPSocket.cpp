@@ -15,6 +15,19 @@ TCPSocket::~TCPSocket()
 	closesocket(m_socket);
 }
 
+bool TCPSocket::ReuseAddr()
+{
+	int option = 1;
+	auto result = setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&option, sizeof(option));
+	if (result != NO_ERROR)
+	{
+		ReportError(L"TCPSocket::ReuseAddr");
+		return false;
+	}
+
+	return true;
+}
+
 bool TCPSocket::Bind(const SocketAddress& bindAddr)
 {
 	auto error = bind(m_socket, &bindAddr.GetData(), static_cast<int>(bindAddr.GetSize()));
@@ -94,10 +107,21 @@ bool TCPSocket::Receive(void* data, size_t len, int32_t* recvBytes)
 
 bool TCPSocket::Shutdown(int shutdownFlag)
 {
-	auto result = shutdown(m_socket, shutdownFlag);
-	if (result == SOCKET_ERROR)
+	if (shutdown(m_socket, shutdownFlag) != NO_ERROR)
 	{
 		ReportError(L"TCPSocket::Shutdown");
+		return false;
+	}
+
+	return true;
+}
+
+bool TCPSocket::SetNonBlockingMode(bool nonBlocking)
+{
+	u_long arg = nonBlocking ? 1 : 0;
+	if(ioctlsocket(m_socket, FIONBIO, &arg) != NO_ERROR)
+	{
+		ReportError(L"TCPSocket::SetNonBlockingMode");
 		return false;
 	}
 

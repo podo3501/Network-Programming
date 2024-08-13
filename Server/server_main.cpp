@@ -14,7 +14,7 @@
 
 constexpr int DEFAULT_BUFLEN = 512;
 
-//콘솔창을 강제 종료할 경우 정상종료가 아니라 메모리가 세는 부분이 생긴다. 
+//콘솔창을 강제 종료할 경우 정상종료가 아니라 메모리가 새는 부분이 생긴다. 
 //이렇게 하면 종료할때 이 부분을 거쳐가게 되어 소멸자가 호출되게 된다.
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
@@ -42,25 +42,26 @@ int __cdecl main(void)
 
 	std::unique_ptr<TCPProtocol> tcpServer = CreateTCPProtocol();
 
-	auto result = tcpServer->Setup(HostType::Server, ":27015");
+	auto result = tcpServer->Setup(HostType::Server, "192.168.0.125:27005");
 	if (result != true)
 		return 1;
+
+	std::cout << "Connected" << std::endl;
 
 	int32_t recvBytes{ 0 };
 	do
 	{
 		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-		result = tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
+		tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
 		if (recvBytes > 0)
 		{
 			std::cout << "Bytes received: " << recvBytes << std::endl;
-			result = tcpServer->Send(recvbuf.data(), recvBytes, nullptr);
+			tcpServer->Send(recvbuf.data(), recvBytes, nullptr);
 		}
 	} while (recvBytes > 0);
 
+	std::cout << "Shutdown" << std::endl;
 	tcpServer->Shutdown();
-
-	system("pause");
 
 	return 0;
 }

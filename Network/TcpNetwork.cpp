@@ -21,52 +21,52 @@ TcpNetwork::~TcpNetwork()
 	Cleanup();
 }
 
-bool TcpNetwork::Setup(HostType type, const std::string& addr)
+bool TcpNetwork::Setup(HostType type, const std::string& serverAddress)
 {
+	ReturnIfFalse(Startup());
+
+	sockaddr serverAddr{};
+	ReturnIfFalse(GetAddressInfo(serverAddress, &serverAddr));
+
+	SocketAddress socketServerAddr(serverAddr);
+
 	switch (type)
 	{
-	case HostType::Server: return Listen(addr);
-	case HostType::Client: return Connect(addr);
+	case HostType::Server: return Listen(socketServerAddr);
+	case HostType::Client: return Connect(socketServerAddr);
 	}
 	
 	return false;
 }
 
-bool TcpNetwork::Listen(const std::string& addr)
+bool TcpNetwork::Listen(const SocketAddress& serverAddr)
 {
-	ReturnIfFalse(Startup());
-
-	sockaddr recvAddr{};
-	ReturnIfFalse(GetAddressInfo(addr, &recvAddr));
-
-	SocketAddress sockAddress(recvAddr);
-
 	std::unique_ptr<TCPSocket> listenSocket = CreateTCPSocket(AF_INET);
 	if (listenSocket == nullptr) return false;
 
-	ReturnIfFalse(listenSocket->Bind(sockAddress));
+	ReturnIfFalse(listenSocket->ReuseAddr());
+	ReturnIfFalse(listenSocket->Bind(serverAddr));
 	ReturnIfFalse(listenSocket->Listen(SOMAXCONN));
 
 	SocketAddress clientAddr;
 	m_tcpSocket = listenSocket->Accept(clientAddr);
 	if (m_tcpSocket == nullptr) return false;
 
+	//SocketAddress clientAddr2;
+	//m_tcpSocket = listenSocket->Accept(clientAddr2);
+	//if (m_tcpSocket == nullptr) return false;
+
+	//m_tcpSocket->SetNonBlockingMode(true);
+
 	return true;
 }
 
-bool TcpNetwork::Connect(const std::string& addr)
+bool TcpNetwork::Connect(const SocketAddress& serverAddr)
 {
-	ReturnIfFalse(Startup());
-
-	sockaddr recvAddr{};
-	ReturnIfFalse(GetAddressInfo(addr, &recvAddr));
-
-	SocketAddress sockAddress(recvAddr);
-
 	m_tcpSocket = CreateTCPSocket(AF_INET);
 	if (m_tcpSocket == nullptr) return false;
 
-	return m_tcpSocket->Connect(sockAddress);
+	return m_tcpSocket->Connect(serverAddr);
 }
 
 bool TcpNetwork::Send(const void* data, size_t len, int32_t* recvBytes)

@@ -101,8 +101,8 @@ namespace Network
 		//클라이언트에서 접속 하는 함수가 잠깐 기다려 주기 때문에 쓰레드로 돌릴 수 있다.
 		//만약 서버 초기화가 길거나 클라이언트에서 접속하는 함수가 기다려 주지 않는다면 
 		//클라이언트는 먼저 종료 되고 서버는 클라이언트를 영원히 기다리는 상태가 된다.
-		std::thread t1{ TCPServer, ":27015" };
-		std::thread t2{ TCPClient, "192.168.0.125:27015" };
+		std::thread t1{ TCPServer, ":23015" };
+		std::thread t2{ TCPClient, "192.168.0.125:23015" };
 		
 		t1.join();
 		t2.join();
