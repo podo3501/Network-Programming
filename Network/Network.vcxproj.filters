@@ -27,5 +27,6 @@
     <ClInclude Include="TCPSocket.h" />
     <ClInclude Include="UdpNetwork.h" />
     <ClInclude Include="UDPSocket.h" />
+    <ClInclude Include="Types.h" />
   </ItemGroup>
 </Project>

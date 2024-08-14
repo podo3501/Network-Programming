@@ -8,6 +8,7 @@
 #include <iostream>
 #include <array>
 #include <string>
+#include <vector>
 #include "../Include/NetworkInterface.h"
 
 #pragma comment (lib, "Ws2_32.lib")
@@ -40,25 +41,37 @@ int __cdecl main(void)
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	std::unique_ptr<TCPProtocol> tcpServer = CreateTCPProtocol();
-
-	auto result = tcpServer->Setup(HostType::Server, "192.168.0.125:27005");
-	if (result != true)
-		return 1;
-
-	std::cout << "Connected" << std::endl;
+	std::unique_ptr<TCPServer> tcpServer = CreateTCPServer();
+	tcpServer->Bind("192.168.0.125:27005");
 
 	int32_t recvBytes{ 0 };
+	auto run{ true };
 	do
 	{
-		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-		tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
-		if (recvBytes > 0)
+		//if (tcpServer->Connection(HostType::Server, "192.168.0.125:27005"))
+		//	std::cout << "Connected" << std::endl;
+		bool update = false;
+		tcpServer->UpdateSocket(&update);
+		if (!update) continue;
+		
+		recvBytes = 0;
+		bool exist = false;
+		do
 		{
-			std::cout << "Bytes received: " << recvBytes << std::endl;
-			tcpServer->Send(recvbuf.data(), recvBytes, nullptr);
-		}
-	} while (recvBytes > 0);
+			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
+			tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes, &exist);
+			if (recvBytes > 0)
+			{
+				std::cout << "Bytes received: " << recvBytes << std::endl;
+				tcpServer->Send(recvbuf.data(), recvBytes, nullptr);
+
+				std::string recvMsg = (char*)recvbuf.data();
+				if (recvMsg == "exit") run = false;
+			}
+		} while (exist);
+		
+		Sleep(1);
+	} while (run);
 
 	std::cout << "Shutdown" << std::endl;
 	tcpServer->Shutdown();

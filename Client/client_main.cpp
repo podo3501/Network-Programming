@@ -36,9 +36,9 @@ int __cdecl main(int argc, char** argv)
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	std::unique_ptr<TCPProtocol> tcpClient = CreateTCPProtocol();
+	std::unique_ptr<TCPClient> tcpClient = CreateTCPClient();
 
-	auto result = tcpClient->Setup(HostType::Client, "192.168.0.125:27005");
+	auto result = tcpClient->Connect("192.168.0.125:27005");
 	if (result != true)
 		return 1;
 
@@ -50,6 +50,7 @@ int __cdecl main(int argc, char** argv)
 		std::getline(std::cin, msg);
 		if (!tcpClient->Send(msg.c_str(), msg.size(), nullptr)) break;
 		if (msg.empty()) break;
+		if (msg == "exit") break;
 
 		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
 		result = tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
@@ -59,7 +60,7 @@ int __cdecl main(int argc, char** argv)
 			std::cout << "Bytes received: " << recvMsg << std::endl;
 			//std::cout << "Bytes received: " << recvBytes << std::endl;
 		}
-	} while (recvBytes > 0);
+	} while (1);
 
 	std::cout << "Shutdown" << std::endl;
 	tcpClient->Shutdown();

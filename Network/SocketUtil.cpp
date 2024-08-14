@@ -3,6 +3,7 @@
 #include "StringUtil.h"
 #include "TCPSocket.h"
 #include "UDPSocket.h"
+#include "Types.h"
 
 void SocketUtil::ReportError(const std::wstring errorDesc)
 {
@@ -94,7 +95,7 @@ bool SocketUtil::GetAddressInfo(const std::string& fullAddr, sockaddr* outAddr)
 	return true;
 }
 
-std::unique_ptr<TCPSocket> SocketUtil::CreateTCPSocket(int addrFamily)
+std::unique_ptr<TCPSocket> SocketUtil::CreateTCPSocket(int addrFamily, SocketType type)
 {
 	SOCKET s = socket(addrFamily, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET)
@@ -103,7 +104,7 @@ std::unique_ptr<TCPSocket> SocketUtil::CreateTCPSocket(int addrFamily)
 		return nullptr;
 	}
 
-	return std::move(std::make_unique<TCPSocket>(s));
+	return std::move(std::make_unique<TCPSocket>(s, type));
 }
 
 std::unique_ptr<UDPSocket> SocketUtil::CreateUDPSocket(int addrFamily)

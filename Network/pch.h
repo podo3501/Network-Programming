@@ -10,6 +10,10 @@
 
 #include <assert.h>
 #include <vector>
+#include <map>
+#include <queue>
 #include <string>
 #include <memory>
+#include <ranges>
+#include <algorithm>
 #include <iostream>

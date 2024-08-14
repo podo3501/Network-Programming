@@ -58,11 +58,11 @@ namespace Network
 	{
 		std::unique_ptr<TCPProtocol> tcpServer = CreateTCPProtocol();
 
-		EXPECT_TRUE(tcpServer->Setup(HostType::Server, addr));
-
 		int32_t recvBytes{ 0 };
 		do
 		{
+			tcpServer->Connection(HostType::Server, addr);
+
 			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
 			EXPECT_TRUE(tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes));
 			if (recvBytes > 0)
@@ -79,7 +79,7 @@ namespace Network
 	{
 		std::unique_ptr<TCPProtocol> tcpClient = CreateTCPProtocol();
 
-		EXPECT_TRUE(tcpClient->Setup(HostType::Client, addr));
+		EXPECT_TRUE(tcpClient->Connection(HostType::Client, addr));
 
 		std::string sendbuf{ "this is a test" };
 		EXPECT_TRUE(tcpClient->Send(sendbuf.c_str(), sendbuf.size(), nullptr));

@@ -2,11 +2,14 @@
 #include "TCPSocket.h"
 #include "SocketAddress.h"
 #include "SocketUtil.h"
+#include "Types.h"
+#include "../Include/NetworkInterface.h"
 
 using namespace SocketUtil;
 
-TCPSocket::TCPSocket(SOCKET s) :
-	m_socket{ s }
+TCPSocket::TCPSocket(SOCKET s, SocketType type) :
+	m_socket{ s },
+	m_type{ type }
 {
 }
 
@@ -70,11 +73,12 @@ std::unique_ptr<TCPSocket> TCPSocket::Accept(SocketAddress& fromAddr)
 	SOCKET s = accept(m_socket, &fromAddr.GetData(), &length);
 	if (s == INVALID_SOCKET)
 	{
-		ReportError(L"TCPSocket::Accept");
+		if (GetLastError() != WSAEWOULDBLOCK)
+			ReportError(L"TCPSocket::Accept");
 		return nullptr;
 	}
 
-	return std::move(std::make_unique<TCPSocket>(s));
+	return std::move(std::make_unique<TCPSocket>(s, SocketType::Client));
 }
 
 bool TCPSocket::Send(const void* data, size_t len, int32_t* recvBytes)
@@ -91,12 +95,27 @@ bool TCPSocket::Send(const void* data, size_t len, int32_t* recvBytes)
 	return true;
 }
 
+bool TCPSocket::Receive(ReceiveData& outData)
+{
+	auto receiveBytes = recv(m_socket, static_cast<char*>(outData.data), static_cast<int>(outData.len), 0);
+	if (receiveBytes < 0)
+	{
+		if (GetLastError() != WSAEWOULDBLOCK)
+			ReportError(L"TCPSocket::Receive");
+		return false;
+	}
+	outData.recvBytes = receiveBytes;
+
+	return true;
+}
+
 bool TCPSocket::Receive(void* data, size_t len, int32_t* recvBytes)
 {
 	auto receiveBytes = recv(m_socket, static_cast<char*>(data), static_cast<int>(len), 0);
 	if (receiveBytes < 0)
 	{
-		ReportError(L"TCPSocket::Receive");
+		if (GetLastError() != WSAEWOULDBLOCK)
+			ReportError(L"TCPSocket::Receive");
 		return false;
 	}
 

@@ -165,6 +165,7 @@
     <ClInclude Include="SocketUtil.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="TCPSocket.h" />
+    <ClInclude Include="Types.h" />
     <ClInclude Include="UdpNetwork.h" />
     <ClInclude Include="UDPSocket.h" />
     <ClInclude Include="Utils.h" />
