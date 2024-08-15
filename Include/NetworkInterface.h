@@ -5,34 +5,7 @@
 
 class SocketAddress;
 
-enum class HostType
-{
-	Server,
-	Client,
-};
-
-struct ReceiveData
-{
-	void* data{ nullptr };
-	size_t len{ 0 };
-	int32_t recvBytes{ 0 };
-};
-
 // TCP ///////////////////////////////////////////
-
-class TCPProtocol
-{
-public:
-	virtual ~TCPProtocol() {}
-
-	virtual bool Connection(HostType type, const std::string& serverAddress) = 0;
-	virtual bool Send(const void* data, size_t len, int32_t* recvBytes) = 0;
-	virtual bool Receive(void* data, size_t len, int32_t* recvBytes, bool* exist) = 0;
-	virtual bool UpdateSocket(bool* isChange) = 0;
-	virtual bool Shutdown(int shutdownFlag = SD_SEND) = 0;
-};
-
-std::unique_ptr<TCPProtocol> CreateTCPProtocol();
 
 class TCPServer
 {

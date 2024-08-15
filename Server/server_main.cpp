@@ -48,8 +48,6 @@ int __cdecl main(void)
 	auto run{ true };
 	do
 	{
-		//if (tcpServer->Connection(HostType::Server, "192.168.0.125:27005"))
-		//	std::cout << "Connected" << std::endl;
 		bool update = false;
 		tcpServer->UpdateSocket(&update);
 		if (!update) continue;

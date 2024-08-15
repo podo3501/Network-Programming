@@ -95,7 +95,7 @@ bool SocketUtil::GetAddressInfo(const std::string& fullAddr, sockaddr* outAddr)
 	return true;
 }
 
-std::unique_ptr<TCPSocket> SocketUtil::CreateTCPSocket(int addrFamily, SocketType type)
+TCPSocketPtr SocketUtil::CreateTCPSocket(int addrFamily, SocketType type)
 {
 	SOCKET s = socket(addrFamily, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET)
@@ -118,4 +118,57 @@ std::unique_ptr<UDPSocket> SocketUtil::CreateUDPSocket(int addrFamily)
 	}
 
 	return std::move(std::make_unique<UDPSocket>(s));
+}
+
+fd_set* FillSetFromList(fd_set& set, const TCPSocketPtrList* inSockets, int* outFds)
+{
+	if (inSockets == nullptr)
+		return nullptr;
+
+	FD_ZERO(&set);
+	for (auto& socket : *inSockets)
+	{
+		const auto& sock = socket->Data();
+		FD_SET(sock, &set);
+		(*outFds) = max(*outFds, static_cast<int>(sock));
+	}
+
+	return &set;
+}
+
+void FillListFromSet(const fd_set& set, const TCPSocketPtrList* inSockets, TCPSocketPtrList* outSockets)
+{
+	if (inSockets == nullptr || outSockets == nullptr) return;
+
+	outSockets->clear();
+	for (auto& socket : *inSockets)
+	{
+		if (!FD_ISSET(socket->Data(), &set))
+			continue;
+
+		outSockets->emplace_back(socket);
+	}
+}
+
+int SocketUtil::Select(const TCPSocketPtrList* inReadSet, TCPSocketPtrList* outReadSet,
+	const TCPSocketPtrList* inWriteSet, TCPSocketPtrList* outWriteSet,
+	const TCPSocketPtrList* inExceptSet, TCPSocketPtrList* outExceptSet)
+{
+	fd_set read{}, write{}, except{};
+
+	int nfds = 0;
+	fd_set* readPtr = FillSetFromList(read, inReadSet, &nfds);
+	fd_set* writePtr = FillSetFromList(read, inWriteSet, &nfds);
+	fd_set* exceptPtr = FillSetFromList(read, inExceptSet, &nfds);
+
+	int toRet = select(nfds + 1, readPtr, writePtr, exceptPtr, nullptr);
+
+	if (toRet > 0)
+	{
+		FillListFromSet(read, inReadSet, outReadSet);
+		FillListFromSet(write, inWriteSet, outWriteSet);
+		FillListFromSet(except, inExceptSet, outExceptSet);
+	}
+
+	return toRet;
 }

@@ -67,7 +67,7 @@ bool TCPSocket::Connect(const SocketAddress& addr)
 	return true;
 }
 
-std::unique_ptr<TCPSocket> TCPSocket::Accept(SocketAddress& fromAddr)
+TCPSocketPtr TCPSocket::Accept(SocketAddress& fromAddr)
 {
 	socklen_t length = static_cast<socklen_t>(fromAddr.GetSize());
 	SOCKET s = accept(m_socket, &fromAddr.GetData(), &length);
@@ -78,7 +78,7 @@ std::unique_ptr<TCPSocket> TCPSocket::Accept(SocketAddress& fromAddr)
 		return nullptr;
 	}
 
-	return std::move(std::make_unique<TCPSocket>(s, SocketType::Client));
+	return std::make_shared<TCPSocket>(s, SocketType::Client);
 }
 
 bool TCPSocket::Send(const void* data, size_t len, int32_t* recvBytes)
@@ -91,20 +91,6 @@ bool TCPSocket::Send(const void* data, size_t len, int32_t* recvBytes)
 	}
 
 	if (recvBytes != nullptr) (*recvBytes) = receiveBytes;
-
-	return true;
-}
-
-bool TCPSocket::Receive(ReceiveData& outData)
-{
-	auto receiveBytes = recv(m_socket, static_cast<char*>(outData.data), static_cast<int>(outData.len), 0);
-	if (receiveBytes < 0)
-	{
-		if (GetLastError() != WSAEWOULDBLOCK)
-			ReportError(L"TCPSocket::Receive");
-		return false;
-	}
-	outData.recvBytes = receiveBytes;
 
 	return true;
 }

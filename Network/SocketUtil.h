@@ -1,4 +1,5 @@
 #pragma once
+#include "Define.h"
 
 class TCPSocket;
 class UDPSocket;
@@ -12,6 +13,10 @@ namespace SocketUtil
 	bool Cleanup();
 	void GetHostAndService(const std::string& addr, std::string* host, std::string* service);
 	bool GetAddressInfo(const std::string& fullAddr, sockaddr* outAddr);
-	std::unique_ptr<TCPSocket> CreateTCPSocket(int addrFamily, SocketType type);
+	TCPSocketPtr CreateTCPSocket(int addrFamily, SocketType type);
 	std::unique_ptr<UDPSocket> CreateUDPSocket(int addrFamily);
+
+	int Select(const TCPSocketPtrList* inReadSet, TCPSocketPtrList* outReadSet,
+		const TCPSocketPtrList* inWriteSet, TCPSocketPtrList* outWriteSet,
+		const TCPSocketPtrList* inExceptSet, TCPSocketPtrList* outExceptSet);
 }

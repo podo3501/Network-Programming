@@ -16,6 +16,7 @@
     <ClCompile Include="TCPSocket.cpp" />
     <ClCompile Include="UdpNetwork.cpp" />
     <ClCompile Include="UDPSocket.cpp" />
+    <ClCompile Include="Define.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TcpNetwork.h" />
@@ -28,5 +29,6 @@
     <ClInclude Include="UdpNetwork.h" />
     <ClInclude Include="UDPSocket.h" />
     <ClInclude Include="Types.h" />
+    <ClInclude Include="Define.h" />
   </ItemGroup>
 </Project>
