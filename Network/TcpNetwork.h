@@ -21,8 +21,8 @@ public:
 	virtual bool Shutdown(int shutdownFlag = SD_SEND) override;
 
 private:
-	void AddSocket(std::shared_ptr<TCPSocket> tcpSocket);
-	void RemoveSocket(SOCKET socket);
+	void AddSocket(TCPSocketPtr socket);
+	void RemoveSocket(TCPSocketPtr socket);
 
 	TCPSocketPtrList m_newSocketList;
 	TCPSocketPtrList m_readableSocketList;

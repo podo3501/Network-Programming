@@ -98,14 +98,14 @@ bool TCPSocket::Send(const void* data, size_t len, int32_t* recvBytes)
 bool TCPSocket::Receive(void* data, size_t len, int32_t* recvBytes)
 {
 	auto receiveBytes = recv(m_socket, static_cast<char*>(data), static_cast<int>(len), 0);
+	if (recvBytes != nullptr) (*recvBytes) = receiveBytes;
+
 	if (receiveBytes < 0)
 	{
 		if (GetLastError() != WSAEWOULDBLOCK)
 			ReportError(L"TCPSocket::Receive");
 		return false;
 	}
-
-	if (recvBytes != nullptr) (*recvBytes) = receiveBytes;
 
 	return true;
 }

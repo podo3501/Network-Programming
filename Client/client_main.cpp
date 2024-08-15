@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include <future>
 #include "../Include/NetworkInterface.h"
 
 constexpr int DEFAULT_BUFLEN = 512;
@@ -28,6 +29,30 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 	return TRUE;
 }
 
+void ReceiveData(TCPClient* tcpClient)
+{
+	while (1)
+	{
+		Sleep(1);
+		int32_t recvBytes{ 0 };
+		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
+		auto result = tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
+
+		if (recvBytes == -1)
+			continue;	 //SetNonBlockingMode 때문에 기다리지 않고 넘어간것
+		if (recvBytes > 0)
+		{
+			std::string recvMsg = (char*)recvbuf.data();
+			std::cout << "received: " << recvMsg << std::endl;
+			//std::cout << "Bytes received: " << recvBytes << std::endl;
+
+			continue;
+		}
+
+		return;
+	}
+}
+
 int __cdecl main(int argc, char** argv)
 {
 #if defined(DEBUG) | defined(_DEBUG)
@@ -38,32 +63,27 @@ int __cdecl main(int argc, char** argv)
 
 	std::unique_ptr<TCPClient> tcpClient = CreateTCPClient();
 
-	auto result = tcpClient->Connect("192.168.0.125:27005");
+	auto result = tcpClient->Connect("192.168.0.125:27009");
 	if (result != true)
 		return 1;
 
-	int32_t recvBytes{ 0 };
+	std::future<void> recv = std::async(std::launch::async, ReceiveData, tcpClient.get());
+
 	do
 	{
 		std::string msg{};
 		std::cout << "message : ";
 		std::getline(std::cin, msg);
-		if (!tcpClient->Send(msg.c_str(), msg.size(), nullptr)) break;
 		if (msg.empty()) break;
 		if (msg == "exit") break;
 
-		std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-		result = tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
-		if (recvBytes > 0)
-		{
-			std::string recvMsg = (char*)recvbuf.data();
-			std::cout << "Bytes received: " << recvMsg << std::endl;
-			//std::cout << "Bytes received: " << recvBytes << std::endl;
-		}
+		if (!tcpClient->Send(msg.c_str(), msg.size(), nullptr)) break;
 	} while (1);
 
 	std::cout << "Shutdown" << std::endl;
 	tcpClient->Shutdown();
+
+	recv.wait();
 
 	return 0;
 }

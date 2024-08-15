@@ -47,11 +47,12 @@ bool CTCPServer::Bind(const std::string& serverAddress)
 
 bool CTCPServer::UpdateSocket(bool* isChange)
 {
+	TCPSocketPtrList readableList;
 	(*isChange) = false;
-	if (!Select(&m_newSocketList, &m_readableSocketList, nullptr, nullptr, nullptr, nullptr))
+	if (!Select(&m_newSocketList, &readableList, nullptr, nullptr, nullptr, nullptr))
 		return true;
 
-	for (auto& socket : m_readableSocketList)
+	for (auto& socket : readableList)
 	{
 		if (socket->Type() == SocketType::Server)
 		{
@@ -92,6 +93,9 @@ bool CTCPServer::Receive(void* data, size_t len, int32_t* recvBytes, bool* exist
 	auto socket = m_readableSocketList.back();
 	ReturnIfFalse(socket->Receive(data, len, recvBytes));
 
+	if ((*recvBytes) == 0)
+		RemoveSocket(socket);
+
 	m_readableSocketList.pop_back();
 	(*exist) = !m_readableSocketList.empty();
 
@@ -107,19 +111,14 @@ bool CTCPServer::Shutdown(int shutdownFlag)
 	return (*serv)->Shutdown(shutdownFlag);
 }
 
-void CTCPServer::AddSocket(std::shared_ptr<TCPSocket> tcpSocket)
+void CTCPServer::AddSocket(TCPSocketPtr socket)
 {
-	m_newSocketList.emplace_back(tcpSocket);
+	m_newSocketList.emplace_back(socket);
 }
 
-void CTCPServer::RemoveSocket(SOCKET socket)
+void CTCPServer::RemoveSocket(TCPSocketPtr socket)
 {
-	//FD_CLR(socket, &m_reads);
-
-	//m_socketList.erase(socket);
-	
-	//std::erase(m_newSocketList, socket);
-	//m_newSocketList.erase(std::remove(m_newSocketList.begin(), m_newSocketList.end(), socket));
+	std::erase(m_newSocketList, socket);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +149,10 @@ bool CTCPClient::Connect(const std::string& serverAddress)
 	m_tcpSocket = CreateTCPSocket(AF_INET, SocketType::Client);
 	if (m_tcpSocket == nullptr) return false;
 
-	return m_tcpSocket->Connect(socketServerAddr);
+	ReturnIfFalse(m_tcpSocket->Connect(socketServerAddr));
+	ReturnIfFalse(m_tcpSocket->SetNonBlockingMode(true));
+
+	return true;
 }
 
 bool CTCPClient::Send(const void* data, size_t len, int32_t* recvBytes)

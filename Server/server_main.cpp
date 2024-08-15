@@ -42,7 +42,7 @@ int __cdecl main(void)
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
 	std::unique_ptr<TCPServer> tcpServer = CreateTCPServer();
-	tcpServer->Bind("192.168.0.125:27005");
+	tcpServer->Bind("192.168.0.125:27009");
 
 	int32_t recvBytes{ 0 };
 	auto run{ true };
@@ -58,6 +58,8 @@ int __cdecl main(void)
 		{
 			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
 			tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes, &exist);
+			if (recvBytes == 0)
+				std::cout << "disconnected" << std::endl;
 			if (recvBytes > 0)
 			{
 				std::cout << "Bytes received: " << recvBytes << std::endl;
