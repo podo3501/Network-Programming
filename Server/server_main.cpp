@@ -73,8 +73,5 @@ int __cdecl main(void)
 		Sleep(1);
 	} while (run);
 
-	std::cout << "Shutdown" << std::endl;
-	tcpServer->Shutdown();
-
 	return 0;
 }

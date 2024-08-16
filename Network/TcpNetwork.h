@@ -18,11 +18,11 @@ public:
 	virtual bool Send(const void* data, size_t len, int32_t* recvBytes) override;
 	virtual bool Receive(void* data, size_t len, int32_t* recvBytes, bool* exist) override;
 	virtual bool UpdateSocket(bool* isChange) override;
-	virtual bool Shutdown(int shutdownFlag = SD_SEND) override;
+	//virtual bool Shutdown(int shutdownFlag = SD_SEND) override;
 
 private:
 	void AddSocket(TCPSocketPtr socket);
-	void RemoveSocket(TCPSocketPtr socket);
+	bool RemoveSocket(TCPSocketPtr socket);
 
 	TCPSocketPtrList m_newSocketList;
 	TCPSocketPtrList m_readableSocketList;

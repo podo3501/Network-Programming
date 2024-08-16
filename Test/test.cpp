@@ -54,55 +54,81 @@ constexpr int DEFAULT_BUFLEN = 512;
 
 namespace Network
 {
-	void TCPServer(const std::string& addr)
+	void ExcuteTCPServer(const std::string& addr)
 	{
-		std::unique_ptr<TCPProtocol> tcpServer = CreateTCPProtocol();
+		std::unique_ptr<TCPServer> tcpServer = CreateTCPServer();
+		tcpServer->Bind(addr);
 
-		int32_t recvBytes{ 0 };
 		do
 		{
-			tcpServer->Connection(HostType::Server, addr);
+			bool update = false;
+			tcpServer->UpdateSocket(&update);
+			if (!update) continue;
 
+			bool exist = false;
+			int32_t recvBytes{ 0 };
 			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-			EXPECT_TRUE(tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes));
+			EXPECT_TRUE(tcpServer->Receive(recvbuf.data(), recvbuf.size(), &recvBytes, &exist));
+			if (recvBytes == 0)
+			{
+				gcout<< "disconnected" << std::endl;
+				break;
+			}
+
 			if (recvBytes > 0)
 			{
 				gcout << "Server Bytes received: " << recvBytes << std::endl;
 				EXPECT_TRUE(tcpServer->Send(recvbuf.data(), recvBytes, nullptr));
 			}
-		} while (recvBytes > 0);
-
-		EXPECT_TRUE(tcpServer->Shutdown());
+		} while (true);
 	}
 
-	void TCPClient(const std::string& addr)
+	void ReceiveData(TCPClient* tcpClient)
 	{
-		std::unique_ptr<TCPProtocol> tcpClient = CreateTCPProtocol();
-
-		EXPECT_TRUE(tcpClient->Connection(HostType::Client, addr));
-
-		std::string sendbuf{ "this is a test" };
-		EXPECT_TRUE(tcpClient->Send(sendbuf.c_str(), sendbuf.size(), nullptr));
-
-		EXPECT_TRUE(tcpClient->Shutdown());
-
 		int32_t recvBytes{ 0 };
 		do
 		{
 			std::array<void*, DEFAULT_BUFLEN> recvbuf{};
-			EXPECT_TRUE(tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes));
+			auto result = tcpClient->Receive(recvbuf.data(), recvbuf.size(), &recvBytes);
+			if (recvBytes == -1)
+				continue;
+
+			if (recvBytes == 0)
+			{
+				gcout << "disconnected" << std::endl;
+				break;
+			}
+
 			if (recvBytes > 0)
 				gcout << "Client Bytes received: " << recvBytes << std::endl;
-		} while (recvBytes > 0);
+
+		} while (true);
+	}
+
+	void ExcuteTCPClient(const std::string& addr)
+	{
+		std::unique_ptr<TCPClient> tcpClient = CreateTCPClient();
+
+		EXPECT_TRUE(tcpClient->Connect(addr));
+
+		std::string sendbuf{ "this is a test" };
+		EXPECT_TRUE(tcpClient->Send(sendbuf.c_str(), sendbuf.size(), nullptr));
+		EXPECT_TRUE(tcpClient->Shutdown());
+
+		std::future<void> recv = std::async(std::launch::async, ReceiveData, tcpClient.get());
+		recv.wait();
 	}
 
 	TEST(TCPSocket, Test)
 	{
+		//blocking 모드일때에는
 		//클라이언트에서 접속 하는 함수가 잠깐 기다려 주기 때문에 쓰레드로 돌릴 수 있다.
 		//만약 서버 초기화가 길거나 클라이언트에서 접속하는 함수가 기다려 주지 않는다면 
 		//클라이언트는 먼저 종료 되고 서버는 클라이언트를 영원히 기다리는 상태가 된다.
-		std::thread t1{ TCPServer, ":23015" };
-		std::thread t2{ TCPClient, "192.168.0.125:23015" };
+
+		//nonblocking 모드일때에는
+		std::thread t1{ ExcuteTCPServer, "192.168.0.125:23015" };
+		std::thread t2{ ExcuteTCPClient, "192.168.0.125:23015" };
 		
 		t1.join();
 		t2.join();

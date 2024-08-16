@@ -94,7 +94,7 @@ bool CTCPServer::Receive(void* data, size_t len, int32_t* recvBytes, bool* exist
 	ReturnIfFalse(socket->Receive(data, len, recvBytes));
 
 	if ((*recvBytes) == 0)
-		RemoveSocket(socket);
+		ReturnIfFalse(RemoveSocket(socket));
 
 	m_readableSocketList.pop_back();
 	(*exist) = !m_readableSocketList.empty();
@@ -102,23 +102,26 @@ bool CTCPServer::Receive(void* data, size_t len, int32_t* recvBytes, bool* exist
 	return true;
 }
 
-bool CTCPServer::Shutdown(int shutdownFlag)
-{
-	auto serv = std::ranges::find_if(m_newSocketList, [](auto& socket) {
-		return socket->Type() == SocketType::Server;
-		});
-
-	return (*serv)->Shutdown(shutdownFlag);
-}
+//bool CTCPServer::Shutdown(int shutdownFlag)
+//{
+//	auto serv = std::ranges::find_if(m_newSocketList, [](auto& socket) {
+//		return socket->Type() == SocketType::Server;
+//		});
+//
+//	return (*serv)->Shutdown(shutdownFlag);
+//}
 
 void CTCPServer::AddSocket(TCPSocketPtr socket)
 {
 	m_newSocketList.emplace_back(socket);
 }
 
-void CTCPServer::RemoveSocket(TCPSocketPtr socket)
+bool CTCPServer::RemoveSocket(TCPSocketPtr socket)
 {
+	ReturnIfFalse(socket->Shutdown(SD_SEND));
 	std::erase(m_newSocketList, socket);
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

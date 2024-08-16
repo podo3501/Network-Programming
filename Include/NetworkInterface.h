@@ -16,7 +16,7 @@ public:
 	virtual bool Send(const void* data, size_t len, int32_t* recvBytes) = 0;
 	virtual bool Receive(void* data, size_t len, int32_t* recvBytes, bool* exist) = 0;
 	virtual bool UpdateSocket(bool* isChange) = 0;
-	virtual bool Shutdown(int shutdownFlag = SD_SEND) = 0;
+	//virtual bool Shutdown(int shutdownFlag = SD_SEND) = 0;
 };
 
 std::unique_ptr<TCPServer> CreateTCPServer();
