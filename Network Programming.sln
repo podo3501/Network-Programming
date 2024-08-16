@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{BC54
 		Include\NetworkInterface.h = Include\NetworkInterface.h
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Serialization", "Serialization\Serialization.vcxproj", "{C131C0F6-29E9-4762-8C47-55254D00C0B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -56,6 +58,14 @@ Global
 		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x64.Build.0 = Release|x64
 		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x86.ActiveCfg = Release|Win32
 		{3E25BD59-39E9-46AF-94B5-59C4B548062A}.Release|x86.Build.0 = Release|Win32
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Debug|x64.ActiveCfg = Debug|x64
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Debug|x64.Build.0 = Debug|x64
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Debug|x86.ActiveCfg = Debug|Win32
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Debug|x86.Build.0 = Debug|Win32
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Release|x64.ActiveCfg = Release|x64
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Release|x64.Build.0 = Release|x64
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Release|x86.ActiveCfg = Release|Win32
+		{C131C0F6-29E9-4762-8C47-55254D00C0B8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

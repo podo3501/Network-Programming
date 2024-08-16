@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "../Include/NetworkInterface.h"
 #include "../Network/SocketAddress.h"
+#include "../Serialization/MemoryStream.h"
 
 //출력 창 - 테스트에 출력하기
 #define gcout std::cout << "[   INFO   ] "
@@ -166,5 +167,34 @@ namespace Network
 		
 		t1.join();
 		t2.join();
+	}
+}
+
+namespace Serialization
+{
+	TEST(ExcuteOutputMemoryStream, Test)
+	{
+		class CValue
+		{
+		public:
+			CValue(int value) : m_value{ value } {}
+			void Write(OutputMemoryStream& oms) { oms.Write(m_value); }
+			//void Read(InputMemoryStream& ims) { ims.Read(m_value); }
+			int Get() { return m_value; }
+
+		private:
+			int m_value{ 0 };
+		};
+		
+		OutputMemoryStream outputMS;
+
+		CValue toValue(12);
+		toValue.Write(outputMS);
+
+		//InputMemoryStream inputMS(outputMS.GetBufferPtr(), outputMS.GetLength());
+		
+		CValue fromValue(0);
+		//fromValue.Read(inputMS);
+		
 	}
 }
