@@ -172,29 +172,49 @@ namespace Network
 
 namespace Serialization
 {
+	class CMSTest
+	{
+	public:
+		CMSTest(int value, float pos) : m_value{ value }, m_pos{ pos } {}
+		void Write(OutputMemoryStream& oms) 
+		{ 
+			oms.Write(m_value); 
+			oms.Write(m_pos); 
+		}
+
+		void Read(InputMemoryStream& ims) 
+		{ 
+			ims.Read(m_value); 
+			ims.Read(m_pos); 
+		}
+
+		int Get() { return m_value; }
+		bool operator==(const CMSTest& rhs) const
+		{
+			if (m_value != rhs.m_value) return false;
+			if (m_pos != rhs.m_pos) return false;
+
+			return true;
+		}
+
+	private:
+		int m_value;
+		float m_pos;
+	};
 	TEST(ExcuteOutputMemoryStream, Test)
 	{
-		class CValue
-		{
-		public:
-			CValue(int value) : m_value{ value } {}
-			void Write(OutputMemoryStream& oms) { oms.Write(m_value); }
-			//void Read(InputMemoryStream& ims) { ims.Read(m_value); }
-			int Get() { return m_value; }
+		OutputMemoryStream oms;
 
-		private:
-			int m_value{ 0 };
-		};
-		
-		OutputMemoryStream outputMS;
+		CMSTest toMS(12, 3.5f);
+		toMS.Write(oms);
 
-		CValue toValue(12);
-		toValue.Write(outputMS);
+		//테스트용으로 간단하게 copy했지만 원래대로면 패킷으로 send, receive 해야 한다.
+		InputMemoryStream ims(4096);
+		std::copy(oms.GetBufferPtr(), oms.GetBufferPtr() + oms.GetBufferSize(), ims.GetBufferPtr());
+		
+		CMSTest fromMS(0, 0.0f);
+		fromMS.Read(ims);
 
-		//InputMemoryStream inputMS(outputMS.GetBufferPtr(), outputMS.GetLength());
-		
-		CValue fromValue(0);
-		//fromValue.Read(inputMS);
-		
+		EXPECT_EQ(toMS, fromMS);
 	}
 }
