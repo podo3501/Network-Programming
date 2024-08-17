@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Endian.h"
+
+#define STREAM_ENDIANNESS 0
+#define PLATFORM_ENDIANNESS 0
+
 class OutputMemoryStream
 {
 public:
@@ -30,7 +35,15 @@ void OutputMemoryStream::Write(const T& data)
 		std::is_enum<T>::value,
 		"Generic Write only supports primitive data types");
 
-	Write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
+	if (STREAM_ENDIANNESS == PLATFORM_ENDIANNESS)
+	{
+		Write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
+	}
+	else
+	{
+		T swappedData = ByteSwap(data);
+		Write(reinterpret_cast<uint8_t*>(&swappedData), sizeof(T));
+	}
 }
 
 class InputMemoryStream

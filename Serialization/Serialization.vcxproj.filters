@@ -3,9 +3,11 @@
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
+    <ClCompile Include="Endian.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="MemoryStream.h" />
+    <ClInclude Include="Endian.h" />
   </ItemGroup>
 </Project>

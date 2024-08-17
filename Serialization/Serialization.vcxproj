@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Endian.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -152,6 +153,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Endian.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

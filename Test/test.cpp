@@ -2,6 +2,7 @@
 #include "../Include/NetworkInterface.h"
 #include "../Network/SocketAddress.h"
 #include "../Serialization/MemoryStream.h"
+#include "../Serialization/Endian.h"
 
 //출력 창 - 테스트에 출력하기
 #define gcout std::cout << "[   INFO   ] "
@@ -216,5 +217,16 @@ namespace Serialization
 		fromMS.Read(ims);
 
 		EXPECT_EQ(toMS, fromMS);
+	}
+
+	TEST(ExcuteEndian, Test)
+	{
+		std::int32_t test = 0x12345678;
+		auto test32 = ByteSwap(test);
+		EXPECT_EQ(test32, 0x78563412);
+
+		std::int32_t intTest = 1;
+		auto testInt = TypeAliaser<int, std::uint32_t>(ByteSwap(intTest)).Get();
+		EXPECT_EQ(testInt, 0x01000000);
 	}
 }
