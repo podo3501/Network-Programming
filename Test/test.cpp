@@ -2,6 +2,7 @@
 #include "../Include/NetworkInterface.h"
 #include "../Network/SocketAddress.h"
 #include "../Serialization/MemoryStream.h"
+#include "../Serialization/MemoryBitStream.h"
 #include "../Serialization/Endian.h"
 
 //출력 창 - 테스트에 출력하기
@@ -176,11 +177,17 @@ namespace Serialization
 	class CMSTest
 	{
 	public:
-		CMSTest(int value, float pos) : m_value{ value }, m_pos{ pos } {}
+		CMSTest(int value, float pos, int bit1, int bit2) : m_value{ value }, m_pos{ pos }, m_bitTest1{ bit1 }, m_bitTest2{ bit2 } {}
 		void Write(OutputMemoryStream& oms) 
 		{ 
 			oms.Write(m_value); 
 			oms.Write(m_pos); 
+		}
+
+		void WriteBit(OutputMemoryBitStream& ombs)
+		{
+			ombs.Write(m_bitTest1, 5);
+			ombs.Write(m_bitTest2, 6);
 		}
 
 		void Read(InputMemoryStream& ims) 
@@ -194,6 +201,8 @@ namespace Serialization
 		{
 			if (m_value != rhs.m_value) return false;
 			if (m_pos != rhs.m_pos) return false;
+			if (m_bitTest1 != rhs.m_bitTest1) return false;
+			if (m_bitTest2 != rhs.m_bitTest2) return false;
 
 			return true;
 		}
@@ -201,22 +210,36 @@ namespace Serialization
 	private:
 		int m_value;
 		float m_pos;
+		int m_bitTest1;
+		int m_bitTest2;
 	};
-	TEST(ExcuteOutputMemoryStream, Test)
+	TEST(ExcuteMemoryStream, Test)
 	{
 		OutputMemoryStream oms;
 
-		CMSTest toMS(12, 3.5f);
+		CMSTest toMS(12, 3.5f, 0, 0);
 		toMS.Write(oms);
 
 		//테스트용으로 간단하게 copy했지만 원래대로면 패킷으로 send, receive 해야 한다.
 		InputMemoryStream ims(4096);
 		std::copy(oms.GetBufferPtr(), oms.GetBufferPtr() + oms.GetBufferSize(), ims.GetBufferPtr());
 		
-		CMSTest fromMS(0, 0.0f);
+		CMSTest fromMS(0, 0.0f, 0, 0);
 		fromMS.Read(ims);
 
 		EXPECT_EQ(toMS, fromMS);
+	}
+
+	TEST(ExcuteMemoryBitStream, Test)
+	{
+		OutputMemoryBitStream ombs;
+
+		CMSTest toMS(0, 0.f, 13, 52);
+		toMS.WriteBit(ombs);
+
+		InputMemoryBitStream imbs(4096);
+		std::copy(ombs.GetBufferPtr(), ombs.GetBufferPtr() + ombs.GetBitLength(), imbs.GetBufferPtr());
+		
 	}
 
 	TEST(ExcuteEndian, Test)

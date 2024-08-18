@@ -16,7 +16,7 @@ OutputMemoryStream::~OutputMemoryStream()
 void OutputMemoryStream::Write(const uint8_t* data, size_t size)
 {
 	if (m_buffer->capacity() < size)
-		m_buffer->resize(size * 3);
+		m_buffer->resize(size * 2);
 
 	auto resultHead = m_head + size;
 	copy(data, data + size, m_buffer->begin() + m_head);
@@ -25,7 +25,7 @@ void OutputMemoryStream::Write(const uint8_t* data, size_t size)
 
 //////////////////////////////////////////////////////////
 
-InputMemoryStream::InputMemoryStream(std::uint32_t size) : m_head{ 0 }
+InputMemoryStream::InputMemoryStream(size_t size) : m_head{ 0 }
 {
 	m_buffer = make_shared<vector<uint8_t>>();
 	m_buffer->resize(size);

@@ -49,9 +49,10 @@ void OutputMemoryStream::Write(const T& data)
 class InputMemoryStream
 {
 public:
-	InputMemoryStream(std::uint32_t size);
+	InputMemoryStream(std::size_t size);
 	~InputMemoryStream();
 
+	InputMemoryStream() = delete;
 	InputMemoryStream(const InputMemoryStream&) = delete;
 	InputMemoryStream& operator=(const InputMemoryStream&) = delete;
 

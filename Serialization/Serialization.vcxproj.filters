@@ -4,10 +4,12 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="Endian.cpp" />
+    <ClCompile Include="MemoryBitStream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="Endian.h" />
+    <ClInclude Include="MemoryBitStream.h" />
   </ItemGroup>
 </Project>
