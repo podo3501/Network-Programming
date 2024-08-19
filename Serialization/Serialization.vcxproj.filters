@@ -11,5 +11,6 @@
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="Endian.h" />
     <ClInclude Include="MemoryBitStream.h" />
+    <ClInclude Include="LinkingContext.h" />
   </ItemGroup>
 </Project>

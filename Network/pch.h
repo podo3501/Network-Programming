@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <queue>
 #include <string>
 #include <memory>

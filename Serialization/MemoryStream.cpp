@@ -15,10 +15,11 @@ OutputMemoryStream::~OutputMemoryStream()
 
 void OutputMemoryStream::Write(const uint8_t* data, size_t size)
 {
-	if (m_buffer->capacity() < size)
-		m_buffer->resize(size * 2);
-
 	auto resultHead = m_head + size;
+	auto capacity = m_buffer->capacity();
+	if (capacity < resultHead)
+		m_buffer->resize(max(capacity * 2, resultHead));
+
 	copy(data, data + size, m_buffer->begin() + m_head);
 	m_head = resultHead;
 }

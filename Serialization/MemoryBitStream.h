@@ -46,11 +46,27 @@ public:
 	InputMemoryBitStream(const InputMemoryBitStream&) = delete;
 	InputMemoryBitStream& operator=(const InputMemoryBitStream&) = delete;
 
+	template<typename T>
+	void Read(T& data, std::size_t bitCount = sizeof(T) * 8);
+
 	std::uint8_t* GetBufferPtr() const { return m_buffer->data(); }
 	std::size_t GetBitLength() const { return m_bitHead; }
 	std::size_t GetByteLength() const { return (m_bitHead + 7) >> 3; }	 //7을 플러스 하는 이유는 1비트라도 있으면 1Byte로 취급
 
+	void ReadBytes(void* outData, std::size_t byteCount) { ReadBits(outData, byteCount << 3); } // * 8의 효과 (byte->bit 변환)
+
 private:
+	void ReadBits(std::uint8_t& outData, std::size_t bitCount);
+	void ReadBits(void* data, size_t bitCount);
+
 	std::shared_ptr<std::vector<std::uint8_t>> m_buffer;
 	std::size_t m_bitHead;
 };
+
+template<typename T>
+void InputMemoryBitStream::Read(T& data, std::size_t bitCount)
+{
+	static_assert(std::is_arithmetic<T>::value || std::is_enum<T>::value, "Generic Write only supports primitive data types");
+
+	ReadBits(&data, bitCount);
+}

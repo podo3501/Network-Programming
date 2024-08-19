@@ -3,6 +3,7 @@
 #include "../Network/SocketAddress.h"
 #include "../Serialization/MemoryStream.h"
 #include "../Serialization/MemoryBitStream.h"
+#include "../Serialization/LinkingContext.h"
 #include "../Serialization/Endian.h"
 
 //출력 창 - 테스트에 출력하기
@@ -174,26 +175,65 @@ namespace Network
 
 namespace Serialization
 {
+	class GameObject
+	{
+	public:
+		GameObject() {};
+		virtual ~GameObject() {}
+	};
+
+	class CData : public GameObject
+	{
+	public:
+		CData() : m_ID{ 0 } {}
+		CData(int id) : m_ID{ id } {}
+
+		bool operator==(const CData& rhs) const
+		{
+			if (m_ID != rhs.m_ID) return false;
+
+			return true;
+		}
+		
+	private:
+		int m_ID;
+	};
+
 	class CMSTest
 	{
 	public:
-		CMSTest(int value, float pos, int bit1, int bit2) : m_value{ value }, m_pos{ pos }, m_bitTest1{ bit1 }, m_bitTest2{ bit2 } {}
+		CMSTest() : m_value{ 0 }, m_pos{ 0.f }, m_bitTest1{ 0 }, m_bitTest2{ 0 }, m_list{}, m_data{ std::make_unique<CData>() }
+		{}
+		CMSTest(int value, float pos, int bit1, int bit2, std::vector<double> list, int id) : m_value{ value }, m_pos{ pos }, 
+			m_bitTest1{ bit1 }, m_bitTest2{ bit2 }, m_list{ list }, m_data{ std::make_unique<CData>(id) } {}
 		void Write(OutputMemoryStream& oms) 
 		{ 
 			oms.Write(m_value); 
-			oms.Write(m_pos); 
+			oms.Write(m_pos);
+			oms.Write(m_list);
+		}
+
+		void Read(InputMemoryStream& ims)
+		{
+			ims.Read(m_value);
+			ims.Read(m_pos);
+			ims.Read(m_list);
 		}
 
 		void WriteBit(OutputMemoryBitStream& ombs)
 		{
+			ombs.Write(m_value);
 			ombs.Write(m_bitTest1, 5);
 			ombs.Write(m_bitTest2, 6);
+			ombs.Write(m_pos);
 		}
 
-		void Read(InputMemoryStream& ims) 
-		{ 
-			ims.Read(m_value); 
-			ims.Read(m_pos); 
+		void ReadBit(InputMemoryBitStream& imbs)
+		{
+			imbs.Read(m_value);
+			imbs.Read(m_bitTest1, 5);
+			imbs.Read(m_bitTest2, 6);
+			imbs.Read(m_pos);
 		}
 
 		int Get() { return m_value; }
@@ -203,6 +243,8 @@ namespace Serialization
 			if (m_pos != rhs.m_pos) return false;
 			if (m_bitTest1 != rhs.m_bitTest1) return false;
 			if (m_bitTest2 != rhs.m_bitTest2) return false;
+			if (!std::ranges::equal(m_list, rhs.m_list)) return false;
+			if ((*m_data) != (*rhs.m_data)) return false;
 
 			return true;
 		}
@@ -210,21 +252,23 @@ namespace Serialization
 	private:
 		int m_value;
 		float m_pos;
+		std::vector<double> m_list;
 		int m_bitTest1;
 		int m_bitTest2;
+		std::unique_ptr<CData> m_data;
 	};
 	TEST(ExcuteMemoryStream, Test)
 	{
 		OutputMemoryStream oms;
 
-		CMSTest toMS(12, 3.5f, 0, 0);
+		CMSTest toMS(12, 3.5f, 0, 0, {3.5, 4.5}, 3);
 		toMS.Write(oms);
 
 		//테스트용으로 간단하게 copy했지만 원래대로면 패킷으로 send, receive 해야 한다.
 		InputMemoryStream ims(4096);
 		std::copy(oms.GetBufferPtr(), oms.GetBufferPtr() + oms.GetBufferSize(), ims.GetBufferPtr());
 		
-		CMSTest fromMS(0, 0.0f, 0, 0);
+		CMSTest fromMS;
 		fromMS.Read(ims);
 
 		EXPECT_EQ(toMS, fromMS);
@@ -234,12 +278,16 @@ namespace Serialization
 	{
 		OutputMemoryBitStream ombs;
 
-		CMSTest toMS(0, 0.f, 13, 52);
+		CMSTest toMS(1, 7.532f, 13, 52, {}, 0);
 		toMS.WriteBit(ombs);
 
 		InputMemoryBitStream imbs(4096);
 		std::copy(ombs.GetBufferPtr(), ombs.GetBufferPtr() + ombs.GetBitLength(), imbs.GetBufferPtr());
-		
+
+		CMSTest fromMS;
+		fromMS.ReadBit(imbs);
+
+		EXPECT_EQ(toMS, fromMS);
 	}
 
 	TEST(ExcuteEndian, Test)

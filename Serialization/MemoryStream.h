@@ -5,6 +5,9 @@
 #define STREAM_ENDIANNESS 0
 #define PLATFORM_ENDIANNESS 0
 
+template<typename T>
+concept Primitive = std::is_arithmetic<T>::value || std::is_enum<T>::value;
+
 class OutputMemoryStream
 {
 public:
@@ -18,7 +21,10 @@ public:
 	std::size_t GetBufferSize() const { return m_head; }
 
 	template<typename T>
-	void Write(const T& data);
+	void Write(const T& data) requires Primitive<T>;
+
+	template<typename T>
+	void Write(const std::vector<T>& vector);
 
 private:
 	void Write(const std::uint8_t* data, std::size_t size);
@@ -28,13 +34,8 @@ private:
 };
 
 template<typename T>
-void OutputMemoryStream::Write(const T& data)
+void OutputMemoryStream::Write(const T& data) requires Primitive<T>
 {
-	static_assert(
-		std::is_arithmetic<T>::value ||
-		std::is_enum<T>::value,
-		"Generic Write only supports primitive data types");
-
 	if (STREAM_ENDIANNESS == PLATFORM_ENDIANNESS)
 	{
 		Write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
@@ -44,6 +45,15 @@ void OutputMemoryStream::Write(const T& data)
 		T swappedData = ByteSwap(data);
 		Write(reinterpret_cast<uint8_t*>(&swappedData), sizeof(T));
 	}
+}
+
+template<typename T>
+void OutputMemoryStream::Write(const std::vector<T>& vector)
+{
+	std::size_t elementCount = vector.size();
+	Write(elementCount);
+	for (const T& element : vector)
+		Write(element);
 }
 
 class InputMemoryStream
@@ -57,7 +67,11 @@ public:
 	InputMemoryStream& operator=(const InputMemoryStream&) = delete;
 
 	template<typename T>
-	void Read(T& data);
+	void Read(T& data) requires Primitive<T> { 
+		Read(reinterpret_cast<uint8_t*>(&data), sizeof(T)); }
+
+	template<typename T>
+	void Read(std::vector<T>& outVector);
 
 	std::uint8_t* GetBufferPtr() { return m_buffer->data(); }
 
@@ -69,12 +83,11 @@ private:
 };
 
 template<typename T>
-void InputMemoryStream::Read(T& data)
+void InputMemoryStream::Read(std::vector<T>& outVector)
 {
-	static_assert(
-		std::is_arithmetic<T>::value ||
-		std::is_enum<T>::value,
-		"Generic Write only supports primitive data types");
-
-	Read(reinterpret_cast<uint8_t*>(&data), sizeof(T));
+	std::size_t elementCount;
+	Read(elementCount);
+	outVector.resize(elementCount);
+	for (T& element : outVector)
+		Read(element);
 }

@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Endian.h" />
+    <ClInclude Include="LinkingContext.h" />
     <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="pch.h" />
