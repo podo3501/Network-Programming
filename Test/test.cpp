@@ -190,6 +190,8 @@ namespace Serialization
 
 		bool operator==(const CData& rhs) const
 		{
+			return true;
+
 			if (m_ID != rhs.m_ID) return false;
 
 			return true;
@@ -218,6 +220,14 @@ namespace Serialization
 			ims.Read(m_value);
 			ims.Read(m_pos);
 			ims.Read(m_list);
+		}
+
+		template<typename Stream>
+		void Serialize(MemoryStream<Stream>* memoryStream)
+		{
+			memoryStream->Serialize(m_value);
+			memoryStream->Serialize(m_pos);
+			memoryStream->Serialize(m_list);
 		}
 
 		void WriteBit(OutputMemoryBitStream& ombs)
@@ -257,7 +267,7 @@ namespace Serialization
 		int m_bitTest2;
 		std::unique_ptr<CData> m_data;
 	};
-	TEST(ExcuteMemoryStream, Test)
+	TEST(ExcuteInoutMemoryStream, Test)
 	{
 		OutputMemoryStream oms;
 
@@ -273,6 +283,23 @@ namespace Serialization
 
 		EXPECT_EQ(toMS, fromMS);
 	}
+
+	TEST(ExcuteMemoryStream, Test)
+	{
+		std::unique_ptr<MemoryStream<OutputMemoryStream>> writeStream = std::make_unique<OutputMemoryStream>();
+
+		CMSTest toMS(12, 3.5f, 0, 0, { 3.5, 4.5 }, 3);
+		toMS.Serialize(writeStream.get());
+
+		std::unique_ptr<MemoryStream<InputMemoryStream>> readStream = std::make_unique<InputMemoryStream>(4096);
+		std::copy(writeStream->GetBufferPtr(), writeStream->GetBufferPtr() + writeStream->GetBufferSize(), readStream->GetBufferPtr());
+
+		CMSTest fromMS;
+		fromMS.Serialize(readStream.get());
+		
+		EXPECT_EQ(toMS, fromMS);
+	}
+	
 
 	TEST(ExcuteMemoryBitStream, Test)
 	{

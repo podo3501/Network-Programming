@@ -8,7 +8,46 @@
 template<typename T>
 concept Primitive = std::is_arithmetic<T>::value || std::is_enum<T>::value;
 
-class OutputMemoryStream
+template<typename Stream>
+class MemoryStream
+{
+public:
+	template<typename T>
+	void Serialize(T& ioData) requires Primitive<T>
+	{
+		if (STREAM_ENDIANNESS == PLATFORM_ENDIANNESS)
+		{
+			static_cast<Stream&>(*this).Serialize(reinterpret_cast<uint8_t*>(&ioData), sizeof(ioData));
+			return;
+		}
+
+		if (static_cast<Stream&>(*this).IsInput())
+		{
+			T data;
+			static_cast<Stream&>(*this).Serialize(reinterpret_cast<uint8_t*>(&data), sizeof(T));
+			ioData = ByteSwap(data);
+			return;
+		}
+
+		T swappedData = ByteSwap(ioData);
+		static_cast<Stream&>(*this).Serialize(reinterpret_cast<uint8_t*>(&swappedData), sizeof(swappedData));
+	}
+
+	template<typename T>
+	void Serialize(std::vector<T>& vector)
+	{
+		if (static_cast<Stream&>(*this).IsInput())
+			static_cast<Stream&>(*this).Serialize(vector);
+		else
+			static_cast<Stream&>(*this).Serialize(vector);
+	}
+
+	virtual std::uint8_t* GetBufferPtr() const = 0;
+	virtual std::size_t GetBufferSize() const = 0;
+	
+};
+
+class OutputMemoryStream : public MemoryStream<OutputMemoryStream>
 {
 public:
 	OutputMemoryStream();
@@ -17,8 +56,15 @@ public:
 	OutputMemoryStream(const OutputMemoryStream&) = delete;
 	OutputMemoryStream& operator=(const OutputMemoryStream&) = delete;
 
-	std::uint8_t* GetBufferPtr() const { return m_buffer->data(); }
-	std::size_t GetBufferSize() const { return m_head; }
+	virtual std::uint8_t* GetBufferPtr() const override { return m_buffer->data(); }
+	virtual std::size_t GetBufferSize() const override { return m_head; }
+
+	void Serialize(const std::uint8_t* inData, std::size_t size)	{ Write(inData, size); }
+
+	template<typename T>
+	void Serialize(std::vector<T>& vector) { Write(vector); }
+
+	bool IsInput() const { return false; }
 
 	template<typename T>
 	void Write(const T& data) requires Primitive<T>;
@@ -56,7 +102,7 @@ void OutputMemoryStream::Write(const std::vector<T>& vector)
 		Write(element);
 }
 
-class InputMemoryStream
+class InputMemoryStream : public MemoryStream<InputMemoryStream>
 {
 public:
 	InputMemoryStream(std::size_t size);
@@ -66,6 +112,13 @@ public:
 	InputMemoryStream(const InputMemoryStream&) = delete;
 	InputMemoryStream& operator=(const InputMemoryStream&) = delete;
 
+	void Serialize(std::uint8_t* outData, std::size_t size) { Read(outData, size); }
+
+	template<typename T>
+	void Serialize(std::vector<T>& vector) { Read(vector); }
+
+	bool IsInput() const { return true; }
+
 	template<typename T>
 	void Read(T& data) requires Primitive<T> { 
 		Read(reinterpret_cast<uint8_t*>(&data), sizeof(T)); }
@@ -73,7 +126,8 @@ public:
 	template<typename T>
 	void Read(std::vector<T>& outVector);
 
-	std::uint8_t* GetBufferPtr() { return m_buffer->data(); }
+	virtual std::uint8_t* GetBufferPtr() const override { return m_buffer->data(); }
+	virtual std::size_t GetBufferSize() const override { return m_head; };
 
 private:
 	void Read(std::uint8_t* data, std::size_t size);
