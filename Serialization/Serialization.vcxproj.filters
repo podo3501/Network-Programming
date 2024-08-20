@@ -5,6 +5,7 @@
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="Endian.cpp" />
     <ClCompile Include="MemoryBitStream.cpp" />
+    <ClCompile Include="Reflection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -12,5 +13,6 @@
     <ClInclude Include="Endian.h" />
     <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="LinkingContext.h" />
+    <ClInclude Include="Reflection.h" />
   </ItemGroup>
 </Project>

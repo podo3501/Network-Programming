@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Endian.h"
+#include "Reflection.h"
 
 #define STREAM_ENDIANNESS 0
 #define PLATFORM_ENDIANNESS 0
@@ -12,6 +13,9 @@ template<typename Stream>
 class MemoryStream
 {
 public:
+	MemoryStream() = default;
+	virtual ~MemoryStream() {};
+
 	template<typename T>
 	void Serialize(T& ioData) requires Primitive<T>
 	{
@@ -40,6 +44,26 @@ public:
 			static_cast<Stream&>(*this).Serialize(vector);
 		else
 			static_cast<Stream&>(*this).Serialize(vector);
+	}
+
+	void Serialize(const DataType* dataType, std::uint8_t* classOffset)
+	{
+		for (auto& mv : dataType->GetMemberVariables())
+		{
+			void* mvOffset = classOffset + mv.GetOffset();
+			switch (mv.GetType())
+			{
+			case MemberType::MT_Int:
+				Serialize(*(int*)mvOffset);
+				break;
+			case MemberType::MT_Float:
+				Serialize(*(float*)mvOffset);
+				break;
+			case MemberType::MT_VectorDouble:
+				Serialize(*(std::vector<double>*)mvOffset);
+				break;
+			}
+		}
 	}
 
 	virtual std::uint8_t* GetBufferPtr() const = 0;

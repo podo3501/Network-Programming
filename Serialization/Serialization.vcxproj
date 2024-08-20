@@ -152,6 +152,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Reflection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Endian.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Reflection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

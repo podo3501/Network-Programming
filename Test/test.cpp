@@ -5,6 +5,8 @@
 #include "../Serialization/MemoryBitStream.h"
 #include "../Serialization/LinkingContext.h"
 #include "../Serialization/Endian.h"
+#include "../Serialization/Reflection.h"
+#include <cstddef>
 
 //출력 창 - 테스트에 출력하기
 #define gcout std::cout << "[   INFO   ] "
@@ -201,13 +203,49 @@ namespace Serialization
 		int m_ID;
 	};
 
-	class CMSTest
+	class Reflection
+	{
+	public:
+		Reflection() : m_dataType{ nullptr } {}
+		virtual ~Reflection() {};
+		virtual void InitDataType() = 0;
+		DataType* Get() { return m_dataType.get(); }
+
+		template<typename Stream, typename T>
+		void SerializeRef(MemoryStream<Stream>* memoryStream, T& offset)
+		{
+			if(m_dataType != nullptr)
+				memoryStream->Serialize(m_dataType.get(), reinterpret_cast<std::uint8_t*>(&offset));
+		}
+
+	protected:
+		std::unique_ptr<DataType> m_dataType;
+	};
+
+	class CMSTest : public Reflection
 	{
 	public:
 		CMSTest() : m_value{ 0 }, m_pos{ 0.f }, m_bitTest1{ 0 }, m_bitTest2{ 0 }, m_list{}, m_data{ std::make_unique<CData>() }
-		{}
+		{
+			InitDataType();
+		}
+
 		CMSTest(int value, float pos, int bit1, int bit2, std::vector<double> list, int id) : m_value{ value }, m_pos{ pos }, 
-			m_bitTest1{ bit1 }, m_bitTest2{ bit2 }, m_list{ list }, m_data{ std::make_unique<CData>(id) } {}
+			m_bitTest1{ bit1 }, m_bitTest2{ bit2 }, m_list{ list }, m_data{ std::make_unique<CData>(id) } 
+		{
+			InitDataType();
+		}
+
+		virtual void InitDataType() override
+		{
+			std::initializer_list<MemberVariable> mvList = { 
+				MemberVariable("m_value", MemberType::MT_Int, offsetof(CMSTest, m_value)),
+				MemberVariable("m_pos", MemberType::MT_Float, offsetof(CMSTest, m_pos)),
+				MemberVariable("m_list", MemberType::MT_VectorDouble, offsetof(CMSTest, m_list)),
+			};
+			m_dataType = std::make_unique<DataType>(mvList);
+		}
+
 		void Write(OutputMemoryStream& oms) 
 		{ 
 			oms.Write(m_value); 
@@ -260,6 +298,7 @@ namespace Serialization
 		}
 
 	private:
+		
 		int m_value;
 		float m_pos;
 		std::vector<double> m_list;
@@ -297,6 +336,22 @@ namespace Serialization
 		CMSTest fromMS;
 		fromMS.Serialize(readStream.get());
 		
+		EXPECT_EQ(toMS, fromMS);
+	}
+
+	TEST(ExcuteReflectionStream, Test)
+	{
+		std::unique_ptr<MemoryStream<OutputMemoryStream>> writeStream = std::make_unique<OutputMemoryStream>();
+		CMSTest toMS(12, 3.5f, 0, 0, { 3.5, 4.5 }, 3);
+
+		toMS.SerializeRef(writeStream.get(), toMS);
+
+		std::unique_ptr<MemoryStream<InputMemoryStream>> readStream = std::make_unique<InputMemoryStream>(4096);
+		std::copy(writeStream->GetBufferPtr(), writeStream->GetBufferPtr() + writeStream->GetBufferSize(), readStream->GetBufferPtr());
+
+		CMSTest fromMS;
+		fromMS.SerializeRef(readStream.get(), fromMS);
+
 		EXPECT_EQ(toMS, fromMS);
 	}
 	
