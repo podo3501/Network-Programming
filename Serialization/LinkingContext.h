@@ -5,40 +5,20 @@ class GameObject;
 class LinkingContext
 {
 public:
-	LinkingContext() {}
+	LinkingContext();
+	~LinkingContext();
 
-	std::uint32_t GetNetworkID(GameObject* gameObject)
-	{
-		auto find = m_gameObjectToNetworkList.find(gameObject);
-		if (find != m_gameObjectToNetworkList.end())
-			return find->second;
+	LinkingContext(const LinkingContext&) = delete;
+	LinkingContext operator=(const LinkingContext&) = delete;
 
-		return 0;
-	}
+	std::uint32_t GetNetworkID(GameObject* gameObject, bool shouldCreateIfNotFound);
+	GameObject* GetGameObject(std::uint32_t networkID) const;
 
-	GameObject* GetGameObject(std::uint32_t networkID) const
-	{
-		auto find = m_networkListToGameObject.find(networkID);
-		if (find != m_networkListToGameObject.end())
-			return find->second;
-		else
-			return nullptr;
-	}
-
-	void AddGameObject(GameObject* gameObject, std::uint32_t networkID)
-	{
-		m_networkListToGameObject[networkID] = gameObject;
-		m_gameObjectToNetworkList[gameObject] = networkID;
-	}
-
-	void RemoveGameObject(GameObject* gameObject)
-	{
-		std::uint32_t networkID = m_gameObjectToNetworkList[gameObject];
-		m_gameObjectToNetworkList.erase(gameObject);
-		m_networkListToGameObject.erase(networkID);
-	}
+	void AddGameObject(GameObject* gameObject, std::uint32_t networkID);
+	void RemoveGameObject(GameObject* gameObject);
 
 private:
 	std::unordered_map<std::uint32_t, GameObject*> m_networkListToGameObject;
 	std::unordered_map<const GameObject*, std::uint32_t> m_gameObjectToNetworkList;
+	std::uint32_t m_nextNetworkID;
 };

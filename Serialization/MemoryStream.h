@@ -16,34 +16,34 @@ public:
 	MemoryStream() = default;
 	virtual ~MemoryStream() {};
 
+	inline Stream& GetStream() { return static_cast<Stream&>(*this); }
+
 	template<typename T>
 	void Serialize(T& ioData) requires Primitive<T>
 	{
 		if (STREAM_ENDIANNESS == PLATFORM_ENDIANNESS)
 		{
-			static_cast<Stream&>(*this).Serialize(reinterpret_cast<uint8_t*>(&ioData), sizeof(ioData));
+			GetStream().Serialize(reinterpret_cast<uint8_t*>(&ioData), sizeof(ioData));
 			return;
 		}
 
 		if (static_cast<Stream&>(*this).IsInput())
 		{
 			T data;
-			static_cast<Stream&>(*this).Serialize(reinterpret_cast<uint8_t*>(&data), sizeof(T));
+			GetStream().Serialize(reinterpret_cast<uint8_t*>(&data), sizeof(T));
 			ioData = ByteSwap(data);
 			return;
 		}
 
 		T swappedData = ByteSwap(ioData);
-		static_cast<Stream&>(*this).Serialize(reinterpret_cast<uint8_t*>(&swappedData), sizeof(swappedData));
+		GetStream().Serialize(reinterpret_cast<uint8_t*>(&swappedData), sizeof(swappedData));
 	}
 
 	template<typename T>
 	void Serialize(std::vector<T>& vector)
 	{
-		if (static_cast<Stream&>(*this).IsInput())
-			static_cast<Stream&>(*this).Serialize(vector);
-		else
-			static_cast<Stream&>(*this).Serialize(vector);
+		if (GetStream().IsInput()) GetStream().Serialize(vector);
+		else GetStream().Serialize(vector);
 	}
 
 	void Serialize(const DataType* dataType, std::uint8_t* classOffset)

@@ -7,4 +7,5 @@
 #include <cstdint>
 #include <string>
 #include <initializer_list>
+#include <unordered_map>
 #include <typeinfo>

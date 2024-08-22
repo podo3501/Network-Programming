@@ -6,6 +6,7 @@
     <ClCompile Include="Endian.cpp" />
     <ClCompile Include="MemoryBitStream.cpp" />
     <ClCompile Include="Reflection.cpp" />
+    <ClCompile Include="LinkingContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
