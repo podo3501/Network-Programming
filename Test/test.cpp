@@ -1,4 +1,8 @@
-﻿#include "pch.h"
+﻿#include "gtest/gtest.h"
+#include <chrono>
+#include <array>
+#include <thread>
+#include <future>
 #include "../Include/NetworkInterface.h"
 #include "../Network/SocketAddress.h"
 #include "../Serialization/MemoryStream.h"

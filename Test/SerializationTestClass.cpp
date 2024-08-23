@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "gtest/gtest.h"
+#include <algorithm>
 #include "SerializationTestClass.h"
 #include "../Serialization/MemoryStream.h"
 #include "../Serialization/MemoryBitStream.h"

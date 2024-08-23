@@ -1,68 +1,43 @@
-#include "pch.h"
+#include "gtest/gtest.h"
 #include "Serialization.h"
-#include "../Serialization/MemoryStream.h"
-#include "../Serialization/MemoryBitStream.h"
 #include "SerializationTestClass.h"
 
 namespace Serialization
 {
 	void FixtureMemoryStream::SetUp()
 	{
-		
+		m_writeStream = std::make_unique<OutputMemoryStream>();
+		m_readStream = std::make_unique<InputMemoryStream>(4096);
 	}
 
 	void FixtureMemoryStream::TearDown()
 	{}
 
-	TEST_F(FixtureMemoryStream, ExcuteInoutMemoryStream)
-	{
-		OutputMemoryStream oms;
-
-		CMSTest toMS(12, 3.5f, 0, 0, { 3.5, 4.5 }, 3);
-		toMS.Write(oms);
-
-		//테스트용으로 간단하게 copy했지만 원래대로면 패킷으로 send, receive 해야 한다.
-		InputMemoryStream ims(4096);
-		std::copy(oms.GetBufferPtr(), oms.GetBufferPtr() + oms.GetBufferSize(), ims.GetBufferPtr());
-
-		CMSTest fromMS;
-		fromMS.Read(ims);
-
-		EXPECT_EQ(toMS, fromMS);
-	}
-
 	TEST_F(FixtureMemoryStream, ExcuteMemoryStream)
 	{
-		std::unique_ptr<MemoryStream<OutputMemoryStream>> writeStream = std::make_unique<OutputMemoryStream>();
-
 		CMSTest toMS(12, 3.5f, 0, 0, { 3.5, 4.5 }, 3);
-		toMS.Serialize(writeStream.get());
+		toMS.Serialize(m_writeStream.get());
 
-		std::unique_ptr<MemoryStream<InputMemoryStream>> readStream = std::make_unique<InputMemoryStream>(4096);
-		std::copy(writeStream->GetBufferPtr(), writeStream->GetBufferPtr() + writeStream->GetBufferSize(), readStream->GetBufferPtr());
+		std::copy(m_writeStream->GetBufferPtr(), m_writeStream->GetBufferPtr() + m_writeStream->GetBufferSize(), m_readStream->GetBufferPtr());
 
 		CMSTest fromMS;
-		fromMS.Serialize(readStream.get());
+		fromMS.Serialize(m_readStream.get());
 
 		EXPECT_EQ(toMS, fromMS);
 	}
 
 	TEST_F(FixtureMemoryStream, ExcuteReflectionStream)
 	{
-		std::unique_ptr<MemoryStream<OutputMemoryStream>> writeStream = std::make_unique<OutputMemoryStream>();
 		CMSTest toMS(12, 3.5f, 0, 0, { 3.5, 4.5 }, 3);
+		toMS.SerializeRef(m_writeStream.get(), toMS);
 
-		toMS.SerializeRef(writeStream.get(), toMS);
-
-		std::unique_ptr<MemoryStream<InputMemoryStream>> readStream = std::make_unique<InputMemoryStream>(4096);
-		std::copy(writeStream->GetBufferPtr(), writeStream->GetBufferPtr() + writeStream->GetBufferSize(), readStream->GetBufferPtr());
+		std::copy(m_writeStream->GetBufferPtr(), m_writeStream->GetBufferPtr() + m_writeStream->GetBufferSize(), m_readStream->GetBufferPtr());
 
 		CMSTest fromMS;
-		fromMS.SerializeRef(readStream.get(), fromMS);
+		fromMS.SerializeRef(m_readStream.get(), fromMS);
 
 		EXPECT_EQ(toMS, fromMS);
 	}
-
 
 	TEST_F(FixtureMemoryStream, ExcuteMemoryBitStream)
 	{
@@ -76,6 +51,23 @@ namespace Serialization
 
 		CMSTest fromMS;
 		fromMS.ReadBit(imbs);
+
+		EXPECT_EQ(toMS, fromMS);
+	}
+
+	TEST(ExcuteInoutMemoryStream, Test)
+	{
+		OutputMemoryStream oms;
+
+		CMSTest toMS(12, 3.5f, 0, 0, { 3.5, 4.5 }, 3);
+		toMS.Write(oms);
+
+		//테스트용으로 간단하게 copy했지만 원래대로면 패킷으로 send, receive 해야 한다.
+		InputMemoryStream ims(4096);
+		std::copy(oms.GetBufferPtr(), oms.GetBufferPtr() + oms.GetBufferSize(), ims.GetBufferPtr());
+
+		CMSTest fromMS;
+		fromMS.Read(ims);
 
 		EXPECT_EQ(toMS, fromMS);
 	}
