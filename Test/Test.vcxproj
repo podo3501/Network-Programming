@@ -108,6 +108,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ClientTest.h" />
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="SerializationTestClass.h" />
     <ClInclude Include="Testsuite.h" />
