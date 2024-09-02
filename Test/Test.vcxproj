@@ -109,13 +109,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ClientTest.h" />
-    <ClInclude Include="Serialization.h" />
     <ClInclude Include="SerializationTestClass.h" />
     <ClInclude Include="Testsuite.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClientTest.cpp" />
-    <ClCompile Include="Serialization.cpp" />
+    <ClCompile Include="Utility.cpp" />
     <ClCompile Include="SerializationTestClass.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="Testsuite.cpp" />

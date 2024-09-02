@@ -3,6 +3,11 @@
 #include "../Include/NetworkInterface.h"
 #include <memory>
 
+template<typename T>
+class MemoryStream;
+class OutputMemoryStream;
+class InputMemoryStream;
+
 namespace Client
 {
     class MockTCPClient : public TCPClient
@@ -14,12 +19,16 @@ namespace Client
         MOCK_METHOD(bool, Shutdown, (int shutdownFlag), (override));
     };
 
-    class FixtureClient : public ::testing::Test
+    class FixtureSerialization : public ::testing::Test
     {
     protected:
         void SetUp() override;
         void TearDown() override;
 
+    protected:
         MockTCPClient m_mockTcpClient;
+
+        std::unique_ptr<MemoryStream<OutputMemoryStream>> m_writeStream;
+        std::unique_ptr<MemoryStream<InputMemoryStream>> m_readStream;
     };
 }

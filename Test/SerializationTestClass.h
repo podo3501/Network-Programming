@@ -1,24 +1,6 @@
 #pragma once
 #include "../Serialization/MemoryStream.h"
 
-class GameObject
-{
-public:
-	GameObject() {};
-	virtual ~GameObject() {}
-};
-
-class CData : public GameObject
-{
-public:
-	CData() : m_ID{ 0 } {}
-	CData(int id) : m_ID{ id } {}
-
-	bool operator==(const CData& rhs) const;
-private:
-	int m_ID;
-};
-
 class OutputMemoryBitStream;
 class InputMemoryBitStream;
 
@@ -41,16 +23,50 @@ protected:
 	std::unique_ptr<DataType> m_dataType;
 };
 
-class CMSTest : public Reflection
+////////////////////////////////////////////////////////////////////////
+//MemoryStream 테스트 클래스
+class CMemoryStreamTest
 {
 public:
-	CMSTest();
-	CMSTest(int value, float pos, int bit1, int bit2, std::vector<double> list, int id);
-
-	virtual void InitDataType() override;
+	CMemoryStreamTest();
+	CMemoryStreamTest(int value, float pos, std::vector<double> list);
 
 	void Write(OutputMemoryStream& oms);
 	void Read(InputMemoryStream& ims);
+
+	bool operator==(const CMemoryStreamTest& rhs) const;
+
+private:
+	int m_value;
+	float m_pos;
+	std::vector<double> m_list;
+};
+
+////////////////////////////////////////////////////////////////////////
+//MemoryBitStream 테스트 클래스
+class CMemoryBitStreamTest
+{
+public:
+	CMemoryBitStreamTest();
+	CMemoryBitStreamTest(int bit1, int bit2);
+
+	void WriteBit(OutputMemoryBitStream& ombs);
+	void ReadBit(InputMemoryBitStream& imbs);
+
+	bool operator==(const CMemoryBitStreamTest& rhs) const;
+
+private:
+	int m_bitTest1;
+	int m_bitTest2;
+};
+
+////////////////////////////////////////////////////////////////////////
+//Serialize를 사용한 MemoryStream 테스트 클래스
+class CUsingSerializeTest
+{
+public:
+	CUsingSerializeTest();
+	CUsingSerializeTest(int value, float pos, std::vector<double> list);
 
 	template<typename Stream>
 	void Serialize(MemoryStream<Stream>* memoryStream)
@@ -60,17 +76,51 @@ public:
 		memoryStream->Serialize(m_list);
 	}
 
-	void WriteBit(OutputMemoryBitStream& ombs);
-	void ReadBit(InputMemoryBitStream& imbs);
-
-	int Get() { return m_value; }
-	bool operator==(const CMSTest& rhs) const;
+	bool operator==(const CUsingSerializeTest& rhs) const;
 
 private:
 	int m_value;
 	float m_pos;
 	std::vector<double> m_list;
-	int m_bitTest1;
-	int m_bitTest2;
-	std::unique_ptr<CData> m_data;
+};
+
+////////////////////////////////////////////////////////////////////////
+//Reflection를 사용한 MemoryStream 테스트 클래스
+class CUsingReflectionTest : public Reflection
+{
+public:
+	CUsingReflectionTest();
+	CUsingReflectionTest(int value, float pos, std::vector<double> list);
+
+	virtual void InitDataType() override;
+
+	bool operator==(const CUsingReflectionTest& rhs) const;
+
+private:
+	int m_value;
+	float m_pos;
+	std::vector<double> m_list;
+};
+
+class GameObject;
+class LinkingContext;
+////////////////////////////////////////////////////////////////////////
+//LinkingContext를 사용한 MemoryBitStream 테스트 클래스
+class CUsingLinkingContextTest
+{
+public:
+	CUsingLinkingContextTest();
+	CUsingLinkingContextTest(int a, int b);
+
+	void Write(OutputMemoryBitStream& ombs);
+
+private:
+	void WriteBit(OutputMemoryBitStream& ombs, GameObject* gameObject);
+	void ReadBit(InputMemoryBitStream& imbs);
+
+	std::unique_ptr<LinkingContext> m_linkingContext;
+
+	std::shared_ptr<GameObject> m_a1;
+	std::shared_ptr<GameObject> m_a2;
+	std::shared_ptr<GameObject> m_b1;
 };

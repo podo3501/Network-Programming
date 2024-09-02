@@ -1,6 +1,15 @@
 #pragma once
 
-class GameObject;
+class OutputMemoryBitStream;
+class InputMemoryBitStream;
+
+class GameObject
+{
+public:
+	virtual ~GameObject() = default;
+	virtual void WriteBit(OutputMemoryBitStream& ombs) = 0;
+	virtual void ReadBit(InputMemoryBitStream& imbs) = 0;
+};
 
 class LinkingContext
 {
