@@ -143,6 +143,7 @@
     <ClCompile Include="LinkingContext.cpp" />
     <ClCompile Include="MemoryBitStream.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
+    <ClCompile Include="ObjectCreationRegistry.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</PrecompiledHeaderFile>
@@ -154,14 +155,18 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Reflection.cpp" />
+    <ClCompile Include="ReplicationManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Endian.h" />
     <ClInclude Include="LinkingContext.h" />
     <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="MemoryStream.h" />
+    <ClInclude Include="ObjectCreationRegistry.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Reflection.h" />
+    <ClInclude Include="ReplicationManager.h" />
+    <ClInclude Include="Type.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

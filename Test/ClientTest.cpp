@@ -77,6 +77,7 @@ namespace Client
         InputMemoryBitStream readStream(4096);
         int32_t recvBytes = 0;
         m_mockTcpClient.Receive(readStream.GetBufferPtr(), 4096, &recvBytes);
+        readStream.Resize(recvBytes);   //실제 데이터가 있는 크기만큼 남기고 공간을 줄임
 
         CMemoryBitStreamTest fromMBS;
         fromMBS.ReadBit(readStream);

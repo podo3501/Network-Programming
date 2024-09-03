@@ -3,12 +3,21 @@
 class OutputMemoryBitStream;
 class InputMemoryBitStream;
 
+#ifndef CLASS_IDENTIFICATION
+#define CLASS_IDENTIFICATION(inCode, inClass) \
+enum { kClassId = inCode }; \
+virtual std::uint32_t GetClassID() const { return kClassId; } \
+static std::unique_ptr<inClass> CreateInstance() { return std::make_unique<inClass>(); }
+#endif
+
 class GameObject
 {
 public:
+	CLASS_IDENTIFICATION('GOBJ', GameObject)
+
 	virtual ~GameObject() = default;
-	virtual void WriteBit(OutputMemoryBitStream& ombs) = 0;
-	virtual void ReadBit(InputMemoryBitStream& imbs) = 0;
+	virtual void WriteBit(OutputMemoryBitStream& ombs) {};
+	virtual void ReadBit(InputMemoryBitStream& imbs) {};
 };
 
 class LinkingContext

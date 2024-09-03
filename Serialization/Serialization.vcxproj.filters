@@ -7,6 +7,8 @@
     <ClCompile Include="MemoryBitStream.cpp" />
     <ClCompile Include="Reflection.cpp" />
     <ClCompile Include="LinkingContext.cpp" />
+    <ClCompile Include="ObjectCreationRegistry.cpp" />
+    <ClCompile Include="ReplicationManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -15,5 +17,8 @@
     <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="LinkingContext.h" />
     <ClInclude Include="Reflection.h" />
+    <ClInclude Include="ObjectCreationRegistry.h" />
+    <ClInclude Include="ReplicationManager.h" />
+    <ClInclude Include="Type.h" />
   </ItemGroup>
 </Project>

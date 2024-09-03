@@ -59,6 +59,11 @@ InputMemoryBitStream::InputMemoryBitStream(std::size_t size) : m_bitHead{ 0 }
 InputMemoryBitStream::~InputMemoryBitStream()
 {}
 
+void InputMemoryBitStream::Resize(std::uint32_t size)
+{
+	m_buffer->resize(size);
+}
+
 void InputMemoryBitStream::ReadBits(uint8_t& outData, size_t bitCount)
 {
 	size_t byteOffset = m_bitHead >> 3;
