@@ -1,6 +1,8 @@
 #include "ClientTest.h"
 #include "SerializationTestClass.h"
 #include "../Serialization/MemoryBitStream.h"
+#include "../Serialization/ReplicationManager.h"
+#include "../Serialization/ObjectCreationRegistry.h"
 
 using ::testing::InSequence;
 using ::testing::Invoke;
@@ -150,6 +152,13 @@ namespace Client
     //변수에 할당함. 
     TEST_F(FixtureSerialization, MemoryBitStreamUsingLinkingContext)
     {
-        //CUsingLinkingContextTest toUsingLinkingContext(1, 2);
+        ReplicationManager replicationMng;
+        replicationMng.GetRegistry()->RegisterCreationFunction<CUsingLinkingContextTest>();
+        replicationMng.GetRegistry()->RegisterCreationFunction<TestLinkingData>();
+
+        TestLinkingData data1(1);
+        CUsingLinkingContextTest toUsingLinkingContext(&data1);
+
+        //패킷을 날리고 동작하는지 테스트 해 보자.
     }
 }

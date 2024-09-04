@@ -7,17 +7,19 @@ class InputMemoryBitStream;
 #define CLASS_IDENTIFICATION(inCode, inClass) \
 enum { kClassId = inCode }; \
 virtual std::uint32_t GetClassID() const { return kClassId; } \
-static std::unique_ptr<inClass> CreateInstance() { return std::make_unique<inClass>(); }
+static inClass* CreateInstance() { return new inClass(); }
 #endif
+
+class LinkingContext;
 
 class GameObject
 {
 public:
 	CLASS_IDENTIFICATION('GOBJ', GameObject)
 
-	virtual ~GameObject() = default;
-	virtual void WriteBit(OutputMemoryBitStream& ombs) {};
-	virtual void ReadBit(InputMemoryBitStream& imbs) {};
+	virtual ~GameObject();
+	virtual void WriteBit(OutputMemoryBitStream& ombs, LinkingContext* linkingContext);
+	virtual void ReadBit(InputMemoryBitStream& imbs, LinkingContext* linkingContext);
 };
 
 class LinkingContext
@@ -32,7 +34,7 @@ public:
 	std::uint32_t GetNetworkID(GameObject* gameObject, bool shouldCreateIfNotFound);
 	GameObject* GetGameObject(std::uint32_t networkID) const;
 
-	void AddGameObject(GameObject* gameObject, std::uint32_t networkID);
+	void AddGameObject(GameObject* gameObject, uint32_t networkID);
 	void RemoveGameObject(GameObject* gameObject);
 
 private:

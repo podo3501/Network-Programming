@@ -8,7 +8,7 @@ class GameObject;
 
 class ObjectCreationRegistry
 {
-	using CreateFunc = std::function<std::unique_ptr<GameObject>()>;
+	using CreateFunc = std::function<GameObject*()>;
 
 public:
 	template<class T>
@@ -18,7 +18,7 @@ public:
 		m_createFuncList[T::kClassId] = T::CreateInstance;
 	}
 
-	std::unique_ptr<GameObject> CreateGameObject(std::uint32_t inClassId);
+	GameObject* CreateGameObject(std::uint32_t inClassId);
 
 private:
 	std::unordered_map<std::uint32_t, CreateFunc> m_createFuncList;

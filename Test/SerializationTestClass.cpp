@@ -108,51 +108,35 @@ bool CUsingReflectionTest::operator==(const CUsingReflectionTest& rhs) const
 
 ////////////////////////////////////////////////////////////////////////
 
-class TestLinkingData : public GameObject
+void TestLinkingData::WriteBit(OutputMemoryBitStream& ombs, LinkingContext* linkingContext)
 {
-public:
-	TestLinkingData() = default;
-	TestLinkingData(int a) : m_a{ a } {};
+	ombs.Write(m_a, 4);	// 값의 범위(0 - 15)
+}
 
-	virtual void WriteBit(OutputMemoryBitStream& ombs) override
-	{
-		ombs.Write(m_a, 4);	// 값의 범위(0 - 15)
-	}
+void TestLinkingData::ReadBit(InputMemoryBitStream& imbs, LinkingContext* linkingContext)
+{
+	imbs.Read(m_a, 4);
+}
 
-	virtual void ReadBit(InputMemoryBitStream& imbs) override
-	{
-		imbs.Read(m_a, 4);
-	}
-
-private:
-	int m_a{ 0 };
-};
+////////////////////////////////////////////////////////////////////////
 
 CUsingLinkingContextTest::CUsingLinkingContextTest() : 
-	m_linkingContext{ std::unique_ptr<LinkingContext>() }, m_a1{ nullptr }, m_a2{ nullptr }, m_b1{ nullptr }
-{}
-CUsingLinkingContextTest::CUsingLinkingContextTest(int a, int b) :
-	m_linkingContext{ std::unique_ptr<LinkingContext>() }, 
-	m_a1{ std::make_shared<TestLinkingData>(a) }, m_a2{ m_a1 }, m_b1{ std::make_shared<TestLinkingData>(b) }
+	m_a1{ nullptr }
 {}
 
-void CUsingLinkingContextTest::Write(OutputMemoryBitStream& ombs)
+
+CUsingLinkingContextTest::CUsingLinkingContextTest(GameObject* data) :
+	m_a1{ data }
+{}
+
+void CUsingLinkingContextTest::WriteBit(OutputMemoryBitStream& ombs, LinkingContext* linkingContext)
 {
-	WriteBit(ombs, m_a1.get());
-	WriteBit(ombs, m_a2.get());
-	WriteBit(ombs, m_b1.get());
+	ombs.Write(linkingContext->GetNetworkID(m_a1, true));
 }
 
-void CUsingLinkingContextTest::WriteBit(OutputMemoryBitStream& ombs, GameObject* gameObject)
-{
-	//데이터의 클래스는 TestLinkingData 하나로 한다.
-	ombs.Write(m_linkingContext->GetNetworkID(gameObject, true));
-	gameObject->WriteBit(ombs);
-}
-
-void CUsingLinkingContextTest::ReadBit(InputMemoryBitStream& imbs)
+void CUsingLinkingContextTest::ReadBit(InputMemoryBitStream& imbs, LinkingContext* linkingContext)
 {
 	std::uint32_t networkID{ 0 };
 	imbs.Read(networkID);
-	GameObject* gameObject = m_linkingContext->GetGameObject(networkID);
+	m_a1 = linkingContext->GetGameObject(networkID);
 }

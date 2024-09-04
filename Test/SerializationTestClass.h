@@ -1,5 +1,6 @@
 #pragma once
 #include "../Serialization/MemoryStream.h"
+#include "../Serialization/LinkingContext.h"
 
 class OutputMemoryBitStream;
 class InputMemoryBitStream;
@@ -102,25 +103,36 @@ private:
 	std::vector<double> m_list;
 };
 
-class GameObject;
-class LinkingContext;
 ////////////////////////////////////////////////////////////////////////
-//LinkingContext를 사용한 MemoryBitStream 테스트 클래스
-class CUsingLinkingContextTest
+
+class TestLinkingData : public GameObject
 {
 public:
-	CUsingLinkingContextTest();
-	CUsingLinkingContextTest(int a, int b);
+	CLASS_IDENTIFICATION('TDAT', GameObject)
 
-	void Write(OutputMemoryBitStream& ombs);
+	TestLinkingData() = default;
+	TestLinkingData(int a) : m_a{ a } {};
+
+	virtual void WriteBit(OutputMemoryBitStream& ombs, LinkingContext* linkingContext) override;
+	virtual void ReadBit(InputMemoryBitStream& imbs, LinkingContext* linkingContext) override;
 
 private:
-	void WriteBit(OutputMemoryBitStream& ombs, GameObject* gameObject);
-	void ReadBit(InputMemoryBitStream& imbs);
+	int m_a{ 0 };
+};
 
-	std::unique_ptr<LinkingContext> m_linkingContext;
+////////////////////////////////////////////////////////////////////////
+//LinkingContext를 사용한 MemoryBitStream 테스트 클래스
+class CUsingLinkingContextTest : public GameObject
+{
+public:
+	CLASS_IDENTIFICATION('ULCT', GameObject)
 
-	std::shared_ptr<GameObject> m_a1;
-	std::shared_ptr<GameObject> m_a2;
-	std::shared_ptr<GameObject> m_b1;
+	CUsingLinkingContextTest();
+	CUsingLinkingContextTest(GameObject* data);
+
+	virtual void WriteBit(OutputMemoryBitStream& ombs, LinkingContext* linkingContext) override;
+	virtual void ReadBit(InputMemoryBitStream& imbs, LinkingContext* linkingContext) override;
+
+private:
+	GameObject* m_a1;
 };

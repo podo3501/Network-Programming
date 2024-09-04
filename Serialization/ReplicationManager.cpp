@@ -13,7 +13,14 @@ using enum PacketType;
 ReplicationManager::ReplicationManager() :
 	m_linkingContext{ std::make_unique<LinkingContext>() },
 	m_creationRegistry{ std::make_unique<ObjectCreationRegistry>() }
-{}
+{
+	m_creationRegistry->RegisterCreationFunction<GameObject>();
+}
+
+ObjectCreationRegistry* ReplicationManager::GetRegistry()
+{
+	return m_creationRegistry.get();
+}
 
 void ReplicationManager::ReplicateWorldState(OutputMemoryBitStream& inStream, const std::vector<GameObject*>& allObjects)
 {
@@ -28,7 +35,7 @@ void ReplicationManager::ReplicateIntoStream(OutputMemoryBitStream& inStream, Ga
 {
 	inStream.Write(m_linkingContext->GetNetworkID(gameObject, true));
 	inStream.Write(gameObject->GetClassID());
-	gameObject->WriteBit(inStream);
+	gameObject->WriteBit(inStream, m_linkingContext.get());
 }
 
 void ReplicationManager::ReceiveWorld(InputMemoryBitStream& inStream)
@@ -40,7 +47,7 @@ void ReplicationManager::ReceiveWorld(InputMemoryBitStream& inStream)
 		GameObject* receivedGameObject = ReceiveReplicatedObject(inStream);
 		receivedObjects.insert(receivedGameObject);
 	}
-
+	
 	auto removeGameObjects = m_replicatedObjects | std::views::filter([&receivedObjects](auto object) {
 		return receivedObjects.find(object) == receivedObjects.end();
 		});
@@ -62,8 +69,12 @@ GameObject* ReplicationManager::ReceiveReplicatedObject(InputMemoryBitStream& in
 	GameObject* object = m_linkingContext->GetGameObject(networkID);
 	if (object == nullptr)
 	{
-		//누가 Object관리역할을 맡을지 생각하자. 아마 linkingContext가 될듯?
-		object = m_creationRegistry->CreateGameObject(classID);	
+		//생성시에는 new로 하지만 각 클래스에 배치 될때 스마트 포인터로 바뀌기 때문에 메모리 걱정을 할 필요가 없다.
+		object = m_creationRegistry->CreateGameObject(classID);
 		m_linkingContext->AddGameObject(object, networkID);
 	}
+
+	object->ReadBit(inStream, m_linkingContext.get());
+
+	return object;
 }

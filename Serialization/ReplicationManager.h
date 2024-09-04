@@ -19,6 +19,8 @@ public:
 	void ReplicateWorldState(OutputMemoryBitStream& inStream, const std::vector<GameObject*>& allObjects);
 	void ReceiveWorld(InputMemoryBitStream& inStream);
 
+	ObjectCreationRegistry* GetRegistry();
+
 private:
 	void ReplicateIntoStream(OutputMemoryBitStream& inStream, GameObject* gameObject);
 	GameObject* ReceiveReplicatedObject(InputMemoryBitStream& inStream);

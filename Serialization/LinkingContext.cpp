@@ -3,6 +3,14 @@
 
 using namespace std;
 
+GameObject::~GameObject() = default;
+void GameObject::WriteBit(OutputMemoryBitStream& ombs, LinkingContext* linkingContext)
+{}
+void GameObject::ReadBit(InputMemoryBitStream& imbs, LinkingContext* linkingContext)
+{}
+
+/////////////////////////////////////////////////////////////////
+
 LinkingContext::~LinkingContext() = default;
 LinkingContext::LinkingContext() :
 	m_nextNetworkID{ 1 }
