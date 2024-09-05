@@ -108,7 +108,7 @@ private:
 class TestLinkingData : public GameObject
 {
 public:
-	CLASS_IDENTIFICATION('TDAT', GameObject)
+	CLASS_IDENTIFICATION('TDAT', TestLinkingData)
 
 	TestLinkingData() = default;
 	TestLinkingData(int a) : m_a{ a } {};
@@ -125,7 +125,7 @@ private:
 class CUsingLinkingContextTest : public GameObject
 {
 public:
-	CLASS_IDENTIFICATION('ULCT', GameObject)
+	CLASS_IDENTIFICATION('ULCT', CUsingLinkingContextTest)
 
 	CUsingLinkingContextTest();
 	CUsingLinkingContextTest(GameObject* data);

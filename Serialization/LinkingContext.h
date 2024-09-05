@@ -7,7 +7,7 @@ class InputMemoryBitStream;
 #define CLASS_IDENTIFICATION(inCode, inClass) \
 enum { kClassId = inCode }; \
 virtual std::uint32_t GetClassID() const { return kClassId; } \
-static inClass* CreateInstance() { return new inClass(); }
+static GameObject* CreateInstance() { return new inClass(); }
 #endif
 
 class LinkingContext;

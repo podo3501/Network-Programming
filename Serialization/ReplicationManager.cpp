@@ -42,7 +42,8 @@ void ReplicationManager::ReceiveWorld(InputMemoryBitStream& inStream)
 {
 	std::unordered_set<GameObject*> receivedObjects;
 
-	while (inStream.GetRemainingBitCount() > 0)	//정확히 비트 숫자만큼은 아니니 나중에 테스트할때 확인해보자
+	//비트스트림이라 길이가 비트 단위이지만 패킷은 바이트 단위라 최대 7비트가 남을 수 있다.
+	while (inStream.GetRemainingBitCount() >= 8)	
 	{
 		GameObject* receivedGameObject = ReceiveReplicatedObject(inStream);
 		receivedObjects.insert(receivedGameObject);

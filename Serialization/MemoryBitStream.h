@@ -64,7 +64,10 @@ public:
 	template<typename T>
 	void Read(T& data, std::size_t bitCount = sizeof(T) * 8);
 
-	std::size_t GetRemainingBitCount() const { return (m_buffer->size() * 8) - m_bitHead; }
+	std::size_t GetRemainingBitCount() const 
+	{ 
+		return (m_buffer->size() * 8) - m_bitHead; 
+	}
 	std::uint8_t* GetBufferPtr() const { return m_buffer->data(); }
 	std::size_t GetBitLength() const { return m_bitHead; }
 	std::size_t GetByteLength() const { return (m_bitHead + 7) >> 3; }	 //7을 플러스 하는 이유는 1비트라도 있으면 1Byte로 취급

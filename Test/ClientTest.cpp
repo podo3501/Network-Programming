@@ -3,6 +3,8 @@
 #include "../Serialization/MemoryBitStream.h"
 #include "../Serialization/ReplicationManager.h"
 #include "../Serialization/ObjectCreationRegistry.h"
+#include "../Serialization/Type.h"
+#include <vector>
 
 using ::testing::InSequence;
 using ::testing::Invoke;
@@ -152,13 +154,40 @@ namespace Client
     //변수에 할당함. 
     TEST_F(FixtureSerialization, MemoryBitStreamUsingLinkingContext)
     {
+        TestLinkingData data1(1);
+        CUsingLinkingContextTest toUsingLinkingContext(&data1);
+        std::vector<GameObject*> objectList{ &data1, &toUsingLinkingContext };
+        //패킷을 날리고 동작하는지 테스트 해 보자
+        auto MockReceive = [&objectList](void* data, size_t len, int32_t* recvBytes)->bool {
+            ReplicationManager replicationMng;
+            replicationMng.GetRegistry()->RegisterCreationFunction<CUsingLinkingContextTest>();
+            replicationMng.GetRegistry()->RegisterCreationFunction<TestLinkingData>();
+
+            OutputMemoryBitStream writeStream;
+            replicationMng.ReplicateWorldState(writeStream, objectList);
+
+            size_t realLength = min(len, writeStream.GetByteLength());
+            MockSendPacket(writeStream.GetBufferPtr(), realLength, data);
+            if (recvBytes != nullptr) (*recvBytes) = static_cast<int32_t>(writeStream.GetByteLength());
+
+            return true;
+            };
+
+        EXPECT_CALL(m_mockTcpClient, Receive(_, _, _)).WillOnce(Invoke(MockReceive));
+
+        InputMemoryBitStream readStream(4096);
+        int32_t recvBytes = 0;
+        m_mockTcpClient.Receive(readStream.GetBufferPtr(), 4096, &recvBytes);
+        readStream.Resize(recvBytes);   //실제 데이터가 있는 크기만큼 남기고 공간을 줄임
+
         ReplicationManager replicationMng;
         replicationMng.GetRegistry()->RegisterCreationFunction<CUsingLinkingContextTest>();
         replicationMng.GetRegistry()->RegisterCreationFunction<TestLinkingData>();
 
-        TestLinkingData data1(1);
-        CUsingLinkingContextTest toUsingLinkingContext(&data1);
+        std::uint32_t packetType{ 0 };
+        readStream.Read(packetType, GetRequiredBits(EtoV(PacketType::PT_Max)));
+        EXPECT_EQ(static_cast<PacketType>(packetType), PacketType::PT_ReplicationData);
 
-        //패킷을 날리고 동작하는지 테스트 해 보자.
+        replicationMng.ReceiveWorld(readStream);
     }
 }
