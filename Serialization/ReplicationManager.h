@@ -21,9 +21,15 @@ public:
 
 	ObjectCreationRegistry* GetRegistry();
 
+	void ReplicateCreate(OutputMemoryBitStream& inStream, GameObject* gameObject);
+	void ReplicateUpdate(OutputMemoryBitStream& inStream, GameObject* gameObject);
+	void ReplicateDestroy(OutputMemoryBitStream& inStream, GameObject* gameObject);
+
+
 private:
 	void ReplicateIntoStream(OutputMemoryBitStream& inStream, GameObject* gameObject);
 	GameObject* ReceiveReplicatedObject(InputMemoryBitStream& inStream);
+	void ProcessReplicationAction(InputMemoryBitStream& imbs);
 
 	std::unique_ptr<LinkingContext> m_linkingContext;
 	std::unique_ptr<ObjectCreationRegistry> m_creationRegistry;

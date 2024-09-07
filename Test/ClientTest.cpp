@@ -152,7 +152,7 @@ namespace Client
     //LinkingContext. 클래스에 포인터형 변수가 있을 경우 데이터에 임의의 네트워크 ID를 부여하고
 	//클라이언트에서 받았을때 네트워크 아이디와 어떤 클래스인지 확인해서 같은 형태의 클래스를 생성한다음
     //변수에 할당함. 
-    TEST_F(FixtureSerialization, MemoryBitStreamUsingLinkingContext)
+    TEST_F(FixtureSerialization, ReplicateAllObject)
     {
         TestLinkingData data1(1);
         CUsingLinkingContextTest toUsingLinkingContext(&data1);
@@ -189,5 +189,13 @@ namespace Client
         EXPECT_EQ(static_cast<PacketType>(packetType), PacketType::PT_ReplicationData);
 
         replicationMng.ReceiveWorld(readStream);
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //항상 전체 Object에 대해서 보낸다면 필요없는 데이터가 전송된다.
+    //업데이트 된 부분만 Replicate(본떠 만든다) 보내도록 한다.
+    TEST_F(FixtureSerialization, ReplicateDirtyObject)
+    {
+
     }
 }

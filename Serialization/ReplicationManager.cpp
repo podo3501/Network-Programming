@@ -8,7 +8,53 @@
 #include "LinkingContext.h"
 #include "ObjectCreationRegistry.h"
 
+enum class ReplicationAction
+{
+	RA_Create,
+	RA_Update,
+	RA_Destroy,
+	RA_MAX,
+};
+
+using enum ReplicationAction;
 using enum PacketType;
+
+class ReplicationHeader
+{
+public:
+	ReplicationHeader() :
+		m_replicationAction{ RA_MAX }, m_networkID{ 0 }, m_classID{ 0 } {}
+
+	ReplicationHeader(ReplicationAction inRA, std::uint32_t inNetworkID, std::uint32_t inClassID = 0) :
+		m_replicationAction{ inRA }, m_networkID{ inNetworkID }, m_classID{ inClassID } {}
+
+	void Write(OutputMemoryBitStream& ombs);
+	void Read(InputMemoryBitStream& imbs);
+
+	ReplicationAction m_replicationAction;
+	std::uint32_t m_networkID;
+	std::uint32_t m_classID;
+};
+
+void ReplicationHeader::Write(OutputMemoryBitStream& ombs)
+{
+	ombs.Write(m_replicationAction, GetRequiredBits(EtoV(RA_MAX)));
+	ombs.Write(m_networkID);
+
+	if (m_replicationAction != RA_Destroy)
+		ombs.Write(m_classID);
+}
+
+void ReplicationHeader::Read(InputMemoryBitStream& imbs)
+{
+	imbs.Read(m_replicationAction, GetRequiredBits(EtoV(RA_MAX)));
+	imbs.Read(m_networkID);
+
+	if (m_replicationAction != RA_Destroy)
+		imbs.Read(m_classID);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 ReplicationManager::ReplicationManager() :
 	m_linkingContext{ std::make_unique<LinkingContext>() },
@@ -78,4 +124,64 @@ GameObject* ReplicationManager::ReceiveReplicatedObject(InputMemoryBitStream& in
 	object->ReadBit(inStream, m_linkingContext.get());
 
 	return object;
+}
+
+void ReplicationManager::ReplicateCreate(OutputMemoryBitStream& inStream, GameObject* gameObject)
+{
+	ReplicationHeader repHeader(RA_Create, 
+		m_linkingContext->GetNetworkID(gameObject, true), gameObject->GetClassID());
+
+	repHeader.Write(inStream);
+	gameObject->WriteBit(inStream, m_linkingContext.get());
+}
+
+void ReplicationManager::ReplicateUpdate(OutputMemoryBitStream& inStream, GameObject* gameObject)
+{
+	ReplicationHeader repHeader(RA_Update,
+		m_linkingContext->GetNetworkID(gameObject, false), gameObject->GetClassID());
+
+	repHeader.Write(inStream);
+	gameObject->WriteBit(inStream, m_linkingContext.get());
+}
+
+void ReplicationManager::ReplicateDestroy(OutputMemoryBitStream& inStream, GameObject* gameObject)
+{
+	ReplicationHeader repHeader(RA_Destroy,
+		m_linkingContext->GetNetworkID(gameObject, false), gameObject->GetClassID());
+
+	repHeader.Write(inStream);
+}
+
+void ReplicationManager::ProcessReplicationAction(InputMemoryBitStream& imbs)
+{
+	ReplicationHeader repHeader;
+	repHeader.Read(imbs);
+	GameObject* object{ nullptr };
+
+	switch (repHeader.m_replicationAction)
+	{
+	case RA_Create:
+		object = m_creationRegistry->CreateGameObject(repHeader.m_classID);
+		m_linkingContext->AddGameObject(object, repHeader.m_networkID);
+		object->ReadBit(imbs, m_linkingContext.get());
+		break;
+	case RA_Update:
+		object = m_linkingContext->GetGameObject(repHeader.m_networkID);
+		if (object == nullptr)
+		{
+			//생성동작을 아직 받지 못했다면 데이터를 읽은다음 폐기함(지금 읽어도 필요없기 때문에)
+			object = m_creationRegistry->CreateGameObject(repHeader.m_classID);
+			object->ReadBit(imbs, m_linkingContext.get());
+			delete object;
+			break;
+		}
+		object->ReadBit(imbs, m_linkingContext.get());
+		break;
+	case RA_Destroy:
+		object = m_linkingContext->GetGameObject(repHeader.m_networkID);
+		m_linkingContext->RemoveGameObject(object);
+		break;
+	default:
+		break;
+	}
 }

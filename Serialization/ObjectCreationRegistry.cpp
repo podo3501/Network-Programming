@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "ObjectCreationRegistry.h"
 #include "LinkingContext.h"
+#include <memory>
 
 GameObject* ObjectCreationRegistry::CreateGameObject(std::uint32_t inClassId)
 {

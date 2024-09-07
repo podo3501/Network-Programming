@@ -1,7 +1,6 @@
 #pragma once
 #include <assert.h>
 #include <unordered_map>
-#include <memory>
 #include <functional>
 
 class GameObject;
