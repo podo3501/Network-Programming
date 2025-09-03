@@ -14,14 +14,13 @@
 - 클라이언트 간 **실시간 채팅 기능** 개발
 
 ### 2. 테스트 환경
-- **Google Test**, **GMock** 기반 테스트 작성  
-- **Mock 객체**를 이용한 클라이언트 네트워크 시뮬레이션 테스트 구현
+- Google Test의 **Mock 객체**를 이용한 클라이언트 네트워크 시뮬레이션 테스트 구현
 
 ### 3. 직렬화 시스템
 - **MemoryStream**을 이용한 데이터 직렬화 구현  
-- **Big-Endian ↔ Little-Endian** 변환 지원  
-- **Write/Read 통합 Serialize 함수**로 성능 최적화  
-- **Reflection 기반 자동 직렬화 구조** 설계  
+- **Big-Endian ↔ Little-Endian** 변환
+- **Write/Read 통합 Serialize 함수**로 사용하기 편하고, 유연한 대처
+- **Reflection 기반 자동 직렬화 구조** 설계
   - GUI 편집기 및 디스크 저장 기능에 활용 가능
 
 ### 4. 객체 식별 및 동기화
